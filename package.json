@@ -1,12 +1,19 @@
 {
   "name": "domainify",
   "version": "0.1.0",
-  "description": "",
+  "description": "A composition-based Domain-Driven Design library",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r test:watch"
   },
-  "keywords": [],
+  "keywords": [
+    "ddd",
+    "domain-driven-design",
+    "value-objects",
+    "entities",
+    "aggregates"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.5.0"
