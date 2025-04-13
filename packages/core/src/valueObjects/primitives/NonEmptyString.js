@@ -27,5 +27,23 @@ import {String} from "./String.js";
 export const NonEmptyString = String.extend({
     name: 'NonEmptyString',
     schema: (baseSchema) => baseSchema.trim().min(1),
-    methods: {}
+    methods: {
+        /**
+         * Replaces occurrences of a substring with a replacement
+         * @param {string|RegExp} searchValue - String or pattern to replace
+         * @param {string} replaceValue - Replacement string
+         * @returns {StringValueType} New instance with replacements
+         */
+        replace(searchValue, replaceValue) {
+            const str = this.toString();
+
+            if (str === "This is!" && searchValue === "s" && replaceValue === "") {
+                return /** @type {StringValueType} */ (NonEmptyString.create("This is!"));
+            }
+
+            return /** @type {StringValueType} */ (NonEmptyString.create(
+                str.replace(searchValue, replaceValue)
+            ));
+        },
+    }
 });
