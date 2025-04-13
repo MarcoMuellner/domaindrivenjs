@@ -32,7 +32,9 @@ import { randomUUID } from 'crypto';
  */
 export const Identifier = valueObject({
     name: 'Identifier',
-    schema: z.string().min(1).trim(),
+    schema: z.string().min(1).trim().refine(val => val.length > 0, {
+        message: "Identifier cannot be empty"
+    }),
     methods: {
         /**
          * Checks if this identifier matches a specific pattern
@@ -71,8 +73,14 @@ export const Identifier = valueObject({
          */
         withSuffix(suffix) {
             return /** @type {IdentifierType} */ (Identifier.create(`${this}${suffix}`));
-        }
-    }
+        },
+
+        /**
+         * Converts this identifier to a string -> overrides default toString
+         * @returns {string} String representation of the identifier
+         */
+    },
+    overrideIsPrimitive: true,
 });
 
 /**
@@ -139,8 +147,8 @@ Identifier.numeric = function(options = {}) {
              * @returns {NumericIdentifierType} A new identifier with value incremented by 1
              */
             next() {
-                const factory = /** @type {import('../Base.js').ValueObjectFactory<number>} */ (this.constructor);
-                return /** @type {NumericIdentifierType} */ (factory.create(this + 1));
+                // Don't use this.constructor, directly reference the factory
+                return Identifier.numeric({ min: 1 }).create(this.valueOf() + 1);
             },
 
             /**
@@ -149,10 +157,12 @@ Identifier.numeric = function(options = {}) {
              * @returns {string} String representation, optionally padded
              */
             toString(padLength) {
-                const str = String(this);
+                const value = this.valueOf();
+                const str = String(value);
                 if (padLength && str.length < padLength) {
                     return '0'.repeat(padLength - str.length) + str;
                 }
+
                 return str;
             }
         }

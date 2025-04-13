@@ -32,9 +32,10 @@ import {ValidationError} from '../errors/index.js';
  * @param {string} options.name - Name of the value object
  * @param {SchemaType} options.schema - Zod schema for validation
  * @param {Record<string, Function>} [options.methods={}] - Methods to attach to the value object
+ * @param {boolean | undefined} [options.overrideIsPrimitive] - Override primitive detection
  * @returns {ValueObjectFactory<z.infer<SchemaType>>} A factory function that creates value objects
  */
-export function valueObject({name, schema, methods = {}})
+export function valueObject({name, schema, methods = {}, overrideIsPrimitive = undefined})
 {
     if (!name) throw new Error('Value object name is required');
     if (!schema) throw new Error('Value object schema is required');
@@ -44,11 +45,12 @@ export function valueObject({name, schema, methods = {}})
         schema.constructor?.name === 'ZodString' ||
         schema.constructor?.name === 'ZodNumber' ||
         schema.constructor?.name === 'ZodBoolean'
-    );
+    ) || overrideIsPrimitive;
 
     /**
      * Factory function to create value objects
      * @param {any} data - The data to create the value object from
+     * @param {boolean | undefined} [isPrimitive=false] - Whether to treat this as a primitive wrapper
      * @returns {ValueObject<z.infer<typeof schema>>} A new value object instance
      * @throws {ValidationError} If validation fails
      */
