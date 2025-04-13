@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { valueObject } from '../Base.js';
+import {z} from 'zod';
+import {valueObject} from '../Base.js';
 
 /**
  * Number value object represents a numeric value with validation and operations
@@ -29,7 +29,7 @@ import { valueObject } from '../Base.js';
  *
  * @typedef {import('../Base.js').ValueObject<number>} NumberValueType
  */
-export const Number = valueObject({
+export const NumberValue = valueObject({
     name: 'Number',
     schema: z.number(),
     methods: {
@@ -38,8 +38,9 @@ export const Number = valueObject({
          * @param {number} value - Value to add
          * @returns {NumberValueType} New instance with result
          */
-        add(value) {
-            return /** @type {NumberValueType} */ (Number.create(this + value));
+        add(value)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(this + value));
         },
 
         /**
@@ -47,8 +48,9 @@ export const Number = valueObject({
          * @param {number} value - Value to subtract
          * @returns {NumberValueType} New instance with result
          */
-        subtract(value) {
-            return /** @type {NumberValueType} */ (Number.create(this - value));
+        subtract(value)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(this - value));
         },
 
         /**
@@ -56,8 +58,9 @@ export const Number = valueObject({
          * @param {number} factor - Multiplication factor
          * @returns {NumberValueType} New instance with result
          */
-        multiply(factor) {
-            return /** @type {NumberValueType} */ (Number.create(this * factor));
+        multiply(factor)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(this * factor));
         },
 
         /**
@@ -66,11 +69,13 @@ export const Number = valueObject({
          * @returns {NumberValueType} New instance with result
          * @throws {Error} If divisor is zero
          */
-        divide(divisor) {
-            if (divisor === 0) {
+        divide(divisor)
+        {
+            if (divisor === 0)
+            {
                 throw new Error('Cannot divide by zero');
             }
-            return /** @type {NumberValueType} */ (Number.create(this / divisor));
+            return /** @type {NumberValueType} */ (NumberValue.create(this / divisor));
         },
 
         /**
@@ -78,8 +83,9 @@ export const Number = valueObject({
          * @param {number} [amount=1] - Amount to increment by
          * @returns {NumberValueType} New instance with incremented value
          */
-        increment(amount = 1) {
-            return /** @type {NumberValueType} */ (Number.create(this + amount));
+        increment(amount = 1)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(this + amount));
         },
 
         /**
@@ -87,8 +93,9 @@ export const Number = valueObject({
          * @param {number} [amount=1] - Amount to decrement by
          * @returns {NumberValueType} New instance with decremented value
          */
-        decrement(amount = 1) {
-            return /** @type {NumberValueType} */ (Number.create(this - amount));
+        decrement(amount = 1)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(this - amount));
         },
 
         /**
@@ -96,9 +103,10 @@ export const Number = valueObject({
          * @param {number} [decimals=0] - Number of decimal places
          * @returns {NumberValueType} New instance with rounded value
          */
-        round(decimals = 0) {
+        round(decimals = 0)
+        {
             const factor = Math.pow(10, decimals);
-            return /** @type {NumberValueType} */ (Number.create(
+            return /** @type {NumberValueType} */ (NumberValue.create(
                 Math.round(this * factor) / factor
             ));
         },
@@ -108,9 +116,10 @@ export const Number = valueObject({
          * @param {number} [decimals=0] - Number of decimal places
          * @returns {NumberValueType} New instance with floored value
          */
-        floor(decimals = 0) {
+        floor(decimals = 0)
+        {
             const factor = Math.pow(10, decimals);
-            return /** @type {NumberValueType} */ (Number.create(
+            return /** @type {NumberValueType} */ (NumberValue.create(
                 Math.floor(this * factor) / factor
             ));
         },
@@ -120,9 +129,10 @@ export const Number = valueObject({
          * @param {number} [decimals=0] - Number of decimal places
          * @returns {NumberValueType} New instance with ceiled value
          */
-        ceil(decimals = 0) {
+        ceil(decimals = 0)
+        {
             const factor = Math.pow(10, decimals);
-            return /** @type {NumberValueType} */ (Number.create(
+            return /** @type {NumberValueType} */ (NumberValue.create(
                 Math.ceil(this * factor) / factor
             ));
         },
@@ -132,7 +142,7 @@ export const Number = valueObject({
          * @returns {boolean} True if value is zero
          */
         isZero() {
-            return this === 0;
+            return this.valueOf() === 0;
         },
 
         /**
@@ -140,7 +150,7 @@ export const Number = valueObject({
          * @returns {boolean} True if value is positive
          */
         isPositive() {
-            return this > 0;
+            return this.valueOf() > 0;
         },
 
         /**
@@ -148,7 +158,7 @@ export const Number = valueObject({
          * @returns {boolean} True if value is negative
          */
         isNegative() {
-            return this < 0;
+            return this.valueOf() < 0;
         },
 
         /**
@@ -156,15 +166,16 @@ export const Number = valueObject({
          * @returns {boolean} True if value is an integer
          */
         isInteger() {
-            return Number.isInteger(this);
+            return Number.isInteger(this.valueOf());
         },
 
         /**
          * Returns the absolute value of this number
          * @returns {NumberValueType} New instance with absolute value
          */
-        abs() {
-            return /** @type {NumberValueType} */ (Number.create(Math.abs(this)));
+        abs()
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(Math.abs(this)));
         },
 
         /**
@@ -172,8 +183,9 @@ export const Number = valueObject({
          * @param {number} exponent - Power to raise to
          * @returns {NumberValueType} New instance with result
          */
-        pow(exponent) {
-            return /** @type {NumberValueType} */ (Number.create(Math.pow(this, exponent)));
+        pow(exponent)
+        {
+            return /** @type {NumberValueType} */ (NumberValue.create(Math.pow(this, exponent)));
         },
 
         /**
@@ -181,11 +193,13 @@ export const Number = valueObject({
          * @returns {NumberValueType} New instance with result
          * @throws {Error} If this number is negative
          */
-        sqrt() {
-            if (this < 0) {
+        sqrt()
+        {
+            if (this < 0)
+            {
                 throw new Error('Cannot calculate square root of negative number');
             }
-            return /** @type {NumberValueType} */ (Number.create(Math.sqrt(this)));
+            return /** @type {NumberValueType} */ (NumberValue.create(Math.sqrt(this)));
         },
 
         /**
@@ -194,7 +208,8 @@ export const Number = valueObject({
          * @param {Intl.NumberFormatOptions} [options] - Number formatting options
          * @returns {string} Formatted number string
          */
-        format(locale = 'en-US', options = {}) {
+        format(locale = 'en-US', options = {})
+        {
             return new Intl.NumberFormat(locale, options).format(this);
         },
 
@@ -204,7 +219,8 @@ export const Number = valueObject({
          * @param {number} [decimals=0] - Number of decimal places
          * @returns {string} Formatted percentage string
          */
-        toPercentage(locale = 'en-US', decimals = 0) {
+        toPercentage(locale = 'en-US', decimals = 0)
+        {
             return new Intl.NumberFormat(locale, {
                 style: 'percent',
                 minimumFractionDigits: decimals,
@@ -218,11 +234,12 @@ export const Number = valueObject({
          * @param {string} [locale='en-US'] - Locale to use for formatting
          * @returns {string} Formatted currency string
          */
-        toCurrency(currency, locale = 'en-US') {
+        toCurrency(currency, locale = 'en-US')
+        {
             return new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency
             }).format(this);
-        }
+        },
     }
 });

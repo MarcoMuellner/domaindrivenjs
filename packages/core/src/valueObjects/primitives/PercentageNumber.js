@@ -1,10 +1,10 @@
-import {Number} from "./Number.js";
+import {NumberValue} from "./Number.js";
 
 /**
  * Creates a PercentageNumber value object that ensures values are between 0 and 1
  * @returns {import('../Base.js').ValueObjectFactory<number>} Factory for percentage numbers
  */
-export const PercentageNumber = Number.extend({
+export const PercentageNumber = NumberValue.extend({
     name: 'PercentageNumber',
     schema: (baseSchema) => baseSchema.min(0).max(1),
     methods: {

@@ -2,6 +2,24 @@ import {z} from 'zod';
 import {ValidationError} from '../errors/index.js';
 
 /**
+ * @template T
+ * @typedef {T & {
+ *   equals: (other: any) => boolean,
+ *   toString: () => string,
+ *   valueOf: () => any,
+ *   [key: string]: any
+ * }} ValueObject<T>
+ */
+
+/**
+ * @template T
+ * @typedef {Object} ValueObjectFactory
+ * @property {(data: any) => ValueObject<T>} create - Creates a new instance of the value object
+ * @property {z.ZodSchema} schema - The Zod schema used for validation
+ * @property {(options: {name: string, schema?: Function, methods?: object}) => ValueObjectFactory<any>} extend - Creates an extended version of this value object
+ */
+
+/**
  * Creates a value object factory
  *
  * Value objects in Domain-Driven Design are:
@@ -9,64 +27,24 @@ import {ValidationError} from '../errors/index.js';
  * 2. Immutable - any modification creates a new instance
  * 3. Comparable by value - two instances with the same attributes are equal
  *
- * Use value objects when:
- * - The concept is defined by its attributes (measurements, descriptors)
- * - There's no continuity of identity through time
- * - The object doesn't have a meaningful lifecycle (tracking changes)
- * - Immutability is desirable to prevent side effects
- * - The object is subordinate to or describes an Entity
- *
- * Common examples: Money, Address, DateRange, Coordinates, Email, etc.
- *
- * @template T
- * @typedef {T & {
- *   equals: (other: any) => boolean,
- *   toString: () => string,
- *   [key: string]: any
- * }} ValueObject<T> - A value object with properties from T plus standard methods
- *
- * @template T
- * @typedef {Object} ValueObjectFactory
- * @property {(data: any) => ValueObject<T>} create - Creates a new instance of the value object
- * @property {z.ZodSchema} schema - The Zod schema used for validation
- * @property {(options: {name: string, schema?: function, methods?: object}) => ValueObjectFactory} extend - Creates an extended version of this value object
- *
  * @template {z.ZodType} SchemaType
  * @param {object} options - Value object configuration
  * @param {string} options.name - Name of the value object
  * @param {SchemaType} options.schema - Zod schema for validation
  * @param {Record<string, Function>} [options.methods={}] - Methods to attach to the value object
  * @returns {ValueObjectFactory<z.infer<SchemaType>>} A factory function that creates value objects
- *
- * @example
- * const Money = valueObject({
- *   name: 'Money',
- *   schema: z.object({
- *     amount: z.number().nonnegative(),
- *     currency: z.string().length(3)
- *   }),
- *   methods: {
- *     add(other) {
- *       if (this.currency !== other.currency) {
- *         throw new Error('Cannot add different currencies');
- *       }
- *       return Money.create({
- *         amount: this.amount + other.amount,
- *         currency: this.currency
- *       });
- *     }
- *   }
- * });
- *
- * // Usage
- * const price = Money.create({ amount: 10.99, currency: 'USD' });
- * const tax = Money.create({ amount: 0.55, currency: 'USD' });
- * const total = price.add(tax); // Returns a new Money instance
  */
 export function valueObject({name, schema, methods = {}})
 {
     if (!name) throw new Error('Value object name is required');
     if (!schema) throw new Error('Value object schema is required');
+
+    // Check if this is likely a primitive wrapper
+    const isPrimitive = (
+        schema.constructor?.name === 'ZodString' ||
+        schema.constructor?.name === 'ZodNumber' ||
+        schema.constructor?.name === 'ZodBoolean'
+    );
 
     /**
      * Factory function to create value objects
@@ -76,14 +54,35 @@ export function valueObject({name, schema, methods = {}})
      */
     function create(data)
     {
-        try
-        {
+        try {
             // Parse and validate the data using the schema
             const validatedData = schema.parse(data);
 
-            // Create the frozen object with the validated data
-            const instance = Object.freeze({
+            // Get primitive value for primitive types
+            const primitiveValue = isPrimitive ? validatedData : undefined;
+
+            // Create a complete prototype object with data and all methods (unbound)
+            const prototype = {
                 ...validatedData,
+
+                /**
+                 * Returns the primitive value for primitive wrappers
+                 * @returns {any}
+                 */
+                valueOf() {
+                    // If this is a primitive wrapper, return the primitive value
+                    if (isPrimitive) {
+                        return primitiveValue;
+                    }
+
+                    // For objects with a single primitive value property, return that
+                    const keys = Object.keys(validatedData);
+                    if (keys.length === 1 && typeof validatedData[keys[0]] !== 'object') {
+                        return validatedData[keys[0]];
+                    }
+
+                    return this;
+                },
 
                 /**
                  * Compares this value object with another for equality
@@ -92,37 +91,35 @@ export function valueObject({name, schema, methods = {}})
                  * @param {any} other - The object to compare with
                  * @returns {boolean} True if the objects are equal
                  */
-                equals(other)
-                {
-                    if (other === null || other === undefined)
-                    {
-                        return false
+                equals(other) {
+                    if (other === null || other === undefined) {
+                        return false;
                     }
 
-                    if (this === other)
-                    {
-                        return true
+                    if (this === other) {
+                        return true;
+                    }
+
+                    // For primitive wrappers, compare primitive values
+                    if (isPrimitive) {
+                        return this.valueOf() === (other.valueOf ? other.valueOf() : other);
                     }
 
                     // Compare all properties
                     const thisProps = Object.getOwnPropertyNames(this);
                     const otherProps = Object.getOwnPropertyNames(other);
 
-                    if (thisProps.length !== otherProps.length)
-                    {
-                        return false
+                    if (thisProps.length !== otherProps.length) {
+                        return false;
                     }
 
-                    for (const prop of thisProps)
-                    {
-                        // Skip the equals method and other functions
-                        if (typeof this[prop] === 'function')
-                        {
-                            continue
+                    for (const prop of thisProps) {
+                        // Skip methods
+                        if (typeof this[prop] === 'function') {
+                            continue;
                         }
 
-                        if (!other.hasOwnProperty(prop) || this[prop] !== other[prop])
-                        {
+                        if (!other.hasOwnProperty(prop) || this[prop] !== other[prop]) {
                             return false;
                         }
                     }
@@ -134,24 +131,38 @@ export function valueObject({name, schema, methods = {}})
                  * Returns a string representation of the value object
                  * @returns {string}
                  */
-                toString()
-                {
-                    return `${name}(${JSON.stringify(validatedData)})`;
-                },
+                toString() {
+                    // For primitive wrappers, just return the string representation of the primitive
+                    if (isPrimitive) {
+                        return String(primitiveValue);
+                    }
 
-                // Add custom methods to the instance
-                ...Object.entries(methods).reduce((acc, [methodName, methodFn]) =>
-                {
-                    acc[methodName] = methodFn.bind(instance);
-                    return acc;
-                }, {})
+                    return `${name}(${JSON.stringify(validatedData)})`;
+                }
+            };
+
+            // Add all custom methods to the prototype (unbound)
+            for (const [methodName, methodFn] of Object.entries(methods)) {
+                prototype[methodName] = methodFn;
+            }
+
+            // Now bind all methods to the complete prototype
+            const boundMethods = {};
+            for (const [methodName, methodFn] of Object.entries(methods)) {
+                boundMethods[methodName] = methodFn.bind(prototype);
+            }
+
+            // Combine standard methods and bound custom methods, then freeze
+            return Object.freeze({
+                ...validatedData,
+                valueOf: prototype.valueOf.bind(prototype),
+                equals: prototype.equals.bind(prototype),
+                toString: prototype.toString.bind(prototype),
+                ...boundMethods
             });
 
-            return instance;
-        } catch (error)
-        {
-            if (error instanceof z.ZodError)
-            {
+        } catch (error) {
+            if (error instanceof z.ZodError) {
                 throw new ValidationError(
                     `Invalid ${name}: ${error.errors.map(e => e.message).join(', ')}`,
                     error,
@@ -170,22 +181,10 @@ export function valueObject({name, schema, methods = {}})
      * @param {function} [options.schema] - Function to transform the base schema
      * @param {object} [options.methods] - Additional methods for the extended object
      * @returns {ValueObjectFactory} A new factory for the extended value object
-     *
-     * @example
-     * const Email = NonEmptyString.extend({
-     *   name: 'Email',
-     *   schema: (baseSchema) => baseSchema.email().toLowerCase(),
-     *   methods: {
-     *     getDomain() {
-     *       return this.split('@')[1];
-     *     }
-     *   }
-     * });
      */
     function extend({name: extendedName, schema: schemaTransformer, methods: extendedMethods = {}})
     {
-        if (!extendedName)
-        {
+        if (!extendedName) {
             throw new Error('Extended value object name is required');
         }
 
@@ -194,17 +193,15 @@ export function valueObject({name, schema, methods = {}})
             schemaTransformer(schema) :
             schema;
 
-        // Combine the methods
-        const combinedMethods = {
-            ...methods,
-            ...extendedMethods
-        };
-
-        // Create a new value object factory
+        // Create a new value object factory with combined methods
         return valueObject({
             name: extendedName,
             schema: extendedSchema,
-            methods: combinedMethods
+            // Explicitly combine all parent methods with extended methods
+            methods: {
+                ...methods,
+                ...extendedMethods
+            }
         });
     }
 
