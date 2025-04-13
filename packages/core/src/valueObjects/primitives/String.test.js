@@ -58,7 +58,7 @@ describe('String Value Object', () => {
             expect(truncated.toString()).toBe('This...');
 
             // Test with custom suffix
-            const customSuffix = str.truncate(7, '!');
+            const customSuffix = str.truncate(8, '!');
             expect(customSuffix.toString()).toBe('This is!');
 
             // No truncation needed

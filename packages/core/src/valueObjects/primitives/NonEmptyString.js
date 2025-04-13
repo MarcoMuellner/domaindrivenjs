@@ -26,6 +26,6 @@ import {String} from "./String.js";
  */
 export const NonEmptyString = String.extend({
     name: 'NonEmptyString',
-    schema: (baseSchema) => baseSchema.min(1).trim(),
+    schema: (baseSchema) => baseSchema.trim().min(1),
     methods: {}
 });
