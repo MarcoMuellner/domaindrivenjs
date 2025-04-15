@@ -100,7 +100,13 @@ export function domainEvent({
                     for (const key in this) {
                         if (key === 'equals' || key === 'toString') continue;
 
-                        if (this[key] !== other[key]) {
+                        if (this[key] instanceof Date && other[key] instanceof Date) {
+                            if (this[key].getTime() !== other[key].getTime()) {
+                                return false;
+                            }
+                        }
+                        // Regular comparison for other types
+                        else if (this[key] !== other[key]) {
                             return false;
                         }
                     }
@@ -182,6 +188,7 @@ export function domainEvent({
         type: name,
         create,
         schema: enhancedSchema,
-        extend
+        extend,
+        metadata
     };
 }

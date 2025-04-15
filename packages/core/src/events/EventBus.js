@@ -41,7 +41,7 @@ export class EventBusError extends DomainError {
  * @returns {Object} An event bus instance
  */
 export function createEventBus(options = {}) {
-    const { adapter } = options;
+    let adapter = options.adapter;
 
     // In-memory event handlers map: eventType => array of handlers
     const handlers = new Map();
@@ -82,32 +82,38 @@ export function createEventBus(options = {}) {
         // Default in-memory implementation
         const eventHandlers = handlers.get(eventType) || [];
 
+        // Make a copy of the handlers array to avoid issues when modifying it
+        const handlersToExecute = [...eventHandlers];
+
+        // Track handlers to remove
+        const handlersToRemove = [];
+
         // Execute handlers
         const promises = [];
-        const removeHandlers = [];
 
-        for (let i = 0; i < eventHandlers.length; i++) {
-            const { handler, once } = eventHandlers[i];
+        for (let i = 0; i < handlersToExecute.length; i++) {
+            const { handler, once } = handlersToExecute[i];
 
             // Queue up promise for the handler execution
             promises.push(Promise.resolve().then(() => handler(event)));
 
             // Mark one-time handlers for removal
             if (once) {
-                removeHandlers.push(i);
+                handlersToRemove.push(handlersToExecute[i]);
             }
         }
 
-        // Remove one-time handlers (in reverse to avoid index issues)
-        for (let i = removeHandlers.length - 1; i >= 0; i--) {
-            eventHandlers.splice(removeHandlers[i], 1);
-        }
+        // Remove one-time handlers
+        if (handlersToRemove.length > 0) {
+            const updatedHandlers = eventHandlers.filter(
+                handlerEntry => !handlersToRemove.includes(handlerEntry)
+            );
 
-        // Update handlers if any remain
-        if (eventHandlers.length > 0) {
-            handlers.set(eventType, eventHandlers);
-        } else {
-            handlers.delete(eventType);
+            if (updatedHandlers.length > 0) {
+                handlers.set(eventType, updatedHandlers);
+            } else {
+                handlers.delete(eventType);
+            }
         }
 
         // Wait for all handlers to complete
@@ -130,20 +136,20 @@ export function createEventBus(options = {}) {
         }
     }
 
-    /**
-     * Subscribes to an event type
-     *
-     * @param {string|Object} eventTypeOrFactory - Event type string or event factory
-     * @param {Function} handler - Function to call when event is published
-     * @param {Object} [options] - Subscription options
-     * @param {boolean} [options.once=false] - If true, handler will be removed after first invocation
-     * @returns {EventSubscription} Subscription with unsubscribe method
-     */
     function on(eventTypeOrFactory, handler, options = {}) {
         const { once = false } = options;
 
         if (typeof handler !== 'function') {
             throw new EventBusError('Event handler must be a function', null, { handler });
+        }
+
+        // Check for null or undefined eventTypeOrFactory first
+        if (eventTypeOrFactory === null || eventTypeOrFactory === undefined) {
+            throw new EventBusError(
+                'Invalid event type or factory: null or undefined',
+                null,
+                { eventTypeOrFactory }
+            );
         }
 
         // Extract event type from string or factory
@@ -153,7 +159,7 @@ export function createEventBus(options = {}) {
 
         if (!eventType) {
             throw new EventBusError(
-                'Invalid event type or factory',
+                'Invalid event type or factory: missing type property',
                 null,
                 { eventTypeOrFactory }
             );
@@ -265,8 +271,8 @@ export function createEventBus(options = {}) {
             );
         }
 
-        // Replace the adapter
-        options.adapter = customAdapter;
+        // Replace the adapter directly, not through options
+        adapter = customAdapter;
     }
 
     /**

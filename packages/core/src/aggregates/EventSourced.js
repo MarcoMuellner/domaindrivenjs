@@ -22,6 +22,9 @@ export function withEvents(aggregate) {
         return aggregate;
     }
 
+    // Store events in a mutable array outside the frozen object
+    const domainEvents = [];
+
     /**
      * Emits a domain event from this aggregate
      *
@@ -31,6 +34,11 @@ export function withEvents(aggregate) {
      */
     function emitEvent(eventTypeOrFactory, eventData) {
         let event;
+
+        // First check for null/undefined
+        if (eventTypeOrFactory === null || eventTypeOrFactory === undefined) {
+            throw new Error('Invalid event type or factory');
+        }
 
         // Handle different types of event references
         if (typeof eventTypeOrFactory === 'string') {
@@ -42,13 +50,17 @@ export function withEvents(aggregate) {
             };
         } else if (typeof eventTypeOrFactory === 'object' && typeof eventTypeOrFactory.create === 'function') {
             // Event factory
-            event = eventTypeOrFactory.create(eventData);
+            try {
+                event = eventTypeOrFactory.create(eventData);
+            } catch (error) {
+                throw new Error('Invalid event type or factory');
+            }
         } else {
             throw new Error('Invalid event type or factory');
         }
 
         // Add the event to the list
-        eventEmittingAggregate._domainEvents.push(event);
+        domainEvents.push(event);
 
         return eventEmittingAggregate;
     }
@@ -59,7 +71,7 @@ export function withEvents(aggregate) {
      * @returns {Array<Object>} The domain events
      */
     function getDomainEvents() {
-        return [...eventEmittingAggregate._domainEvents];
+        return [...domainEvents];
     }
 
     /**
@@ -68,14 +80,18 @@ export function withEvents(aggregate) {
      * @returns {T & AggregateWithEvents} The aggregate instance for chaining
      */
     function clearDomainEvents() {
-        eventEmittingAggregate._domainEvents = [];
+        // Clear the array without reassigning it
+        domainEvents.length = 0;
         return eventEmittingAggregate;
     }
 
     // Create a new object with the event-emitting capabilities
     const eventEmittingAggregate = Object.freeze({
         ...aggregate,
-        _domainEvents: [],
+        // Create a getter for _domainEvents that returns a copy of the events
+        get _domainEvents() {
+            return [...domainEvents];
+        },
         emitEvent,
         getDomainEvents,
         clearDomainEvents
@@ -98,12 +114,26 @@ export function updateWithEvents(originalAggregate, updatedAggregate) {
         return withEvents(updatedAggregate);
     }
 
-    // Transfer events from the original to the updated aggregate
+    // Create a new aggregate with event capability
     const updatedWithEvents = withEvents(updatedAggregate);
 
-    // Copy over the events from the original
+    // Copy events from original aggregate by emitting them on the new one
     originalAggregate._domainEvents.forEach(event => {
-        updatedWithEvents._domainEvents.push(event);
+        // We need to recreate events with the same type and data
+        // but without relying on direct array manipulation
+        if (typeof event.type === 'string') {
+            // Extract data without the type and timestamp
+            const { type, timestamp, ...eventData } = event;
+
+            // Create a new object for the event data with the original timestamp
+            const newEventData = {
+                ...eventData,
+                timestamp: timestamp
+            };
+
+            // Emit the event with the same type and data
+            updatedWithEvents.emitEvent(type, newEventData);
+        }
     });
 
     return updatedWithEvents;

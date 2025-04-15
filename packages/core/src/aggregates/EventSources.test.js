@@ -61,11 +61,6 @@ describe('Aggregate Events Integration', () => {
 
             // Add an event to the aggregate
             const TestEvent = createTestEvent();
-            const event = TestEvent.create({
-                aggregateId: aggregate.id,
-                property: 'status',
-                value: 'UPDATED'
-            });
 
             eventCapableAggregate.emitEvent(TestEvent, {
                 aggregateId: aggregate.id,
@@ -79,8 +74,16 @@ describe('Aggregate Events Integration', () => {
             // Assert
             expect(doubleEnhanced).toBe(eventCapableAggregate);
             expect(doubleEnhanced._domainEvents).toHaveLength(1);
-            expect(doubleEnhanced._domainEvents[0]).toEqual(event);
+
+            // Compare individual properties instead of the entire object
+            const emittedEvent = doubleEnhanced._domainEvents[0];
+            expect(emittedEvent.type).toBe('TestEvent');
+            expect(emittedEvent.aggregateId).toBe(aggregate.id);
+            expect(emittedEvent.property).toBe('status');
+            expect(emittedEvent.value).toBe('UPDATED');
+            expect(emittedEvent.timestamp).toBeInstanceOf(Date);
         });
+
     });
 
     describe('updateWithEvents', () => {
