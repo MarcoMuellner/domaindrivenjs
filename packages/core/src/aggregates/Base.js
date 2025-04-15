@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { entity } from '../entities/Base.js';
 import { ValidationError, DomainError } from '../errors/index.js';
 import {InvariantViolationError} from "../errors/InvariantViolationError.js";
+import {updateWithEvents, withEvents} from "./EventSourced.js";
 
 /**
  * @typedef {Object} InvariantDefinition
@@ -99,6 +100,7 @@ export function aggregate({
         }
     }
 
+
     /**
      * Create a new aggregate instance
      * @param {T} data - The data to create the aggregate from
@@ -126,11 +128,14 @@ export function aggregate({
             boundCustomMethods[methodName] = methodFn.bind(entityInstance);
         }
 
-        // Return the complete aggregate instance
-        return Object.freeze({
+        // Create the basic aggregate instance
+        const aggregateInstance = Object.freeze({
             ...entityInstance,
             ...boundCustomMethods
         });
+
+        // Enhance with event capabilities
+        return withEvents(aggregateInstance);
     }
 
     /**
@@ -150,7 +155,12 @@ export function aggregate({
         validateInvariants(updatedEntity);
 
         // Create a new aggregate instance with the updated entity
-        return create(updatedEntity);
+        const updatedAggregate = create(updatedEntity);
+
+        // Transfer any domain events
+        return aggregate._domainEvents
+            ? updateWithEvents(aggregate, updatedAggregate)
+            : updatedAggregate;
     }
 
     /**
