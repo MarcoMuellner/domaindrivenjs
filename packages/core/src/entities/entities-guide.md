@@ -4,62 +4,78 @@ Entities are a fundamental building block in Domain-Driven Design (DDD). This gu
 
 ## What are Entities?
 
-Entities are objects that have:
+In Domain-Driven Design, entities are objects defined by their identity, not just their attributes:
 
-1. **Identity** - They're defined by a unique identifier that persists across state changes
-2. **Lifecycle** - They can be created, updated, and deleted
-3. **Business rules** - They encapsulate domain logic and validation
-4. **Mutability** - Unlike value objects, entities can change while maintaining their identity
+- **Identity** - They have a unique identifier that persists throughout their lifecycle
+- **Mutable State** - Their attributes can change over time while maintaining identity
+- **Business Rules** - They encapsulate domain logic and enforce invariants
+- **Lifecycle** - They follow a defined lifecycle (creation, updates, possibly deletion)
 
-The key difference between entities and value objects is that entities are compared by their identity, not by their attributes. Two entities with the same attributes but different IDs are different entities.
+The key distinction between entities and value objects is that **two entities with the same attributes but different identities are considered different**. The identity makes the entity unique, not its current state.
 
 ## Creating Entities
 
-The core of domainify's entity implementation is the `entity` factory function that creates immutable, self-validating entities:
+The core of domainify's entity implementation is the `entity` factory function:
 
 ```javascript
 import { z } from 'zod';
 import { entity } from 'domainify';
 
+// Define a Customer entity
 const Customer = entity({
-    name: 'Customer',
-    schema: z.object({
-        id: z.string().uuid(),
-        name: z.string().min(1),
-        email: z.string().email(),
-        address: z.string().optional()
-    }),
-    identity: 'id',
-    methods: {
-        updateEmail(email) {
-            return Customer.update(this, { email });
-        },
-        changeName(name) {
-            return Customer.update(this, { name });
-        },
-        moveToAddress(address) {
-            return Customer.update(this, { address });
-        }
+  name: 'Customer',                        // Name of the entity
+  schema: z.object({                       // Zod schema for validation
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    email: z.string().email(),
+    address: z.string().optional()
+  }),
+  identity: 'id',                          // Which field is the identity
+  methods: {                               // Custom domain methods
+    updateEmail(email) {
+      return Customer.update(this, { email });
+    },
+    changeName(name) {
+      return Customer.update(this, { name });
+    },
+    moveToAddress(address) {
+      return Customer.update(this, { address });
     }
-});
-
-// Usage
-const customer = Customer.create({
-    id: 'cust-123',
-    name: 'John Doe',
-    email: 'john@example.com'
-});
-
-// Update using a method
-const updatedCustomer = customer.updateEmail('john.doe@example.com');
-
-// Update directly
-const movedCustomer = Customer.update(updatedCustomer, {
-    address: '123 Main St, Anytown'
+  },
+  historize: false                         // Optional history tracking
 });
 ```
 
-## Entity Features
+## Using Entities
+
+### Creating Entity Instances
+
+Create new entity instances using the `create` method:
+
+```javascript
+const customer = Customer.create({
+  id: 'cust-123',
+  name: 'John Doe',
+  email: 'john@example.com'
+});
+```
+
+All properties will be validated against the schema. If any validation fails, a `ValidationError` will be thrown.
+
+### Updating Entities
+
+Update entities using either the entity factory or entity methods:
+
+```javascript
+// Using the factory's update method:
+const updatedCustomer = Customer.update(customer, { 
+  name: 'John Smith' 
+});
+
+// Or using domain methods (recommended):
+const updatedCustomer = customer.updateEmail('john.smith@example.com');
+const movedCustomer = customer.moveToAddress('123 Main St, Anytown');
+```
 
 ### Identity-Based Equality
 
@@ -67,217 +83,288 @@ Entities compare equality based on their identity, not their attributes:
 
 ```javascript
 const customer1 = Customer.create({
-    id: 'cust-123',
-    name: 'John',
-    email: 'john@example.com'
+  id: 'cust-123',
+  name: 'John',
+  email: 'john@example.com'
 });
 
 const customer2 = Customer.create({
-    id: 'cust-123',
-    name: 'Johnny', // Different name
-    email: 'johnny@example.com' // Different email
+  id: 'cust-123',            // Same ID
+  name: 'John Smith',        // Different name
+  email: 'john@company.com'  // Different email
 });
 
-console.log(customer1.equals(customer2)); // true - same ID
+// Equal because they have the same identity
+console.log(customer1.equals(customer2)); // true
 ```
 
 ### Immutability with State Changes
 
-Like value objects, entities are immutable. State changes create new instances while preserving identity:
+Like value objects, entity instances are immutable. State changes create new instances while preserving identity:
 
 ```javascript
-const customer = Customer.create({
-    id: 'cust-123',
-    name: 'John Doe',
-    email: 'john@example.com'
-});
-
-// This would throw an error
+// This throws an error - entities are immutable
 try {
-    customer.name = 'Jane Doe'; // Error: Cannot assign to read-only property
+  customer.name = 'Jane Doe'; // Error: Cannot assign to read-only property
 } catch (error) {
-    console.error(error);
+  console.error(error);
 }
 
-// Instead, use the update method
+// Instead, use update or methods
 const updatedCustomer = Customer.update(customer, { name: 'Jane Doe' });
 console.log(updatedCustomer.name); // 'Jane Doe'
-console.log(customer.name); // Still 'John Doe'
+console.log(customer.name);        // Still 'John Doe'
 ```
 
 ### Identity Protection
 
-Entities prevent changing the identity field after creation:
+The identity field is protected from changes:
 
 ```javascript
-const customer = Customer.create({
-    id: 'cust-123',
-    name: 'John Doe',
-    email: 'john@example.com'
-});
-
-// This would throw an error
 try {
-    Customer.update(customer, { id: 'cust-456' });
+  // This throws an error - cannot change identity
+  Customer.update(customer, { id: 'cust-456' });
 } catch (error) {
-    console.error(error); // Cannot change identity of Customer
+  console.error(error); // Cannot change identity of Customer
 }
 ```
 
-### Optional Historization
+## History Tracking
 
-Entities can optionally track their state changes by enabling historization:
+Enable history tracking by setting `historize: true`:
 
 ```javascript
 const AuditedCustomer = entity({
-    name: 'AuditedCustomer',
-    schema: z.object({
-        id: z.string().uuid(),
-        name: z.string().min(1),
-        email: z.string().email(),
-        status: z.enum(['ACTIVE', 'INACTIVE']),
-        _history: z.array(z.any()).optional()
-    }),
-    identity: 'id',
-    historize: true, // Enable historization
-    methods: {
-        deactivate() {
-            return AuditedCustomer.update(this, { status: 'INACTIVE' });
-        }
+  name: 'AuditedCustomer',
+  schema: z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    email: z.string().email(),
+    status: z.enum(['ACTIVE', 'INACTIVE']),
+    _history: z.array(z.any()).optional()
+  }),
+  identity: 'id',
+  historize: true, // Enable history tracking
+  methods: {
+    deactivate() {
+      return AuditedCustomer.update(this, { status: 'INACTIVE' });
     }
+  }
 });
 
 const customer = AuditedCustomer.create({
-    id: 'cust-123',
-    name: 'John Doe',
-    email: 'john@example.com',
-    status: 'ACTIVE'
+  id: 'cust-123',
+  name: 'John Doe',
+  email: 'john@example.com',
+  status: 'ACTIVE'
 });
 
 const inactiveCustomer = customer.deactivate();
 
 console.log(inactiveCustomer._history);
-// Contains a record of the status change
-// [{ 
-//   timestamp: Date,
-//   changes: [{ 
-//     field: 'status', 
-//     from: 'ACTIVE', 
-//     to: 'INACTIVE', 
-//     timestamp: Date 
-//   }]
-// }]
+/* History structure:
+[{ 
+  timestamp: Date,
+  changes: [{ 
+    field: 'status', 
+    from: 'ACTIVE', 
+    to: 'INACTIVE', 
+    timestamp: Date 
+  }]
+}]
+*/
 ```
 
-## Using Value Objects with Entities
+Only actual changes are recorded in history. Updates that don't change values won't create history entries.
 
-Entities work seamlessly with value objects:
+## Integrating with Value Objects
+
+Entities can contain value objects as properties. Use the value object schema helpers for proper validation:
 
 ```javascript
 import { z } from 'zod';
-import { entity, NonEmptyString, Email } from 'domainify';
+import { 
+  entity, 
+  NonEmptyString, 
+  Email, 
+  Money,
+  valueObjectSchema, 
+  specificValueObjectSchema 
+} from 'domainify';
 
-const User = entity({
-    name: 'User',
-    schema: z.object({
-        id: z.string().uuid(),
-        username: z.string(),
-        displayName: NonEmptyString.schema, // Properly typed as NonEmptyString schema
-        email: Email.schema // Properly typed as Email schema
-    }),
-    identity: 'id',
-    methods: {
-        updateDisplayName(name) {
-            return User.update(this, {
-                displayName: NonEmptyString.create(name)
-            });
-        },
-        updateEmail(email) {
-            return User.update(this, {
-                email: Email.create(email)
-            });
-        }
-    }
-});
-
-// Create user with value objects
-const user = User.create({
-    id: 'user-123',
-    username: 'johndoe',
-    displayName: NonEmptyString.create('John Doe'),
-    email: Email.create('john@example.com')
-});
-
-// Update a value object property
-const updatedUser = user.updateDisplayName('John Smith');
-```
-
-## Extending Entities
-
-You can extend entities to create more specialized types while inheriting the base behavior:
-
-```javascript
-const BaseCustomer = entity({
-  name: 'BaseCustomer',
+const Order = entity({
+  name: 'Order',
   schema: z.object({
     id: z.string().uuid(),
-    name: z.string().min(1)
+    customerName: specificValueObjectSchema(NonEmptyString),
+    customerEmail: specificValueObjectSchema(Email),
+    totalAmount: specificValueObjectSchema(Money),
+    // Any value object (not type-specific)
+    metadata: valueObjectSchema()
   }),
   identity: 'id',
   methods: {
-    changeName(name) {
-      return BaseCustomer.update(this, { name });
-    }
-  }
-});
-
-const PremiumCustomer = BaseCustomer.extend({
-  name: 'PremiumCustomer',
-  schema: (baseSchema) => baseSchema.extend({
-    level: z.enum(['GOLD', 'PLATINUM', 'DIAMOND']),
-    discountRate: z.number().min(0).max(1)
-  }),
-  methods: {
-    upgradeMembership(newLevel) {
-      const discountRates = {
-        'GOLD': 0.05,
-        'PLATINUM': 0.10,
-        'DIAMOND': 0.15
-      };
-      
-      return PremiumCustomer.update(this, {
-        level: newLevel,
-        discountRate: discountRates[newLevel]
+    updateCustomerName(name) {
+      return Order.update(this, {
+        customerName: NonEmptyString.create(name)
       });
     }
   }
 });
 
-// Create a premium customer
-const customer = PremiumCustomer.create({
-  id: 'cust-123',
-  name: 'Jane Smith',
-  level: 'GOLD',
-  discountRate: 0.05
+// Create with value objects
+const order = Order.create({
+  id: 'order-123',
+  customerName: NonEmptyString.create('John Doe'),
+  customerEmail: Email.create('john@example.com'),
+  totalAmount: Money.create({ amount: 99.99, currency: 'USD' }),
+  metadata: SomeValueObject.create({ version: '1.0' })
 });
 
-// Use inherited method
-const renamedCustomer = customer.changeName('Jane Doe');
+// Update value object properties
+const updatedOrder = order.updateCustomerName('Jane Smith');
+```
 
-// Use specialized method
-const upgradedCustomer = customer.upgradeMembership('PLATINUM');
-console.log(upgradedCustomer.level); // 'PLATINUM'
-console.log(upgradedCustomer.discountRate); // 0.10
+## Extending Entities
+
+Create more specialized entities by extending existing ones:
+
+```javascript
+const BaseUser = entity({
+  name: 'BaseUser',
+  schema: z.object({
+    id: z.string().uuid(),
+    username: z.string().min(3),
+    email: z.string().email()
+  }),
+  identity: 'id',
+  methods: {
+    updateEmail(email) {
+      return BaseUser.update(this, { email });
+    }
+  }
+});
+
+const AdminUser = BaseUser.extend({
+  name: 'AdminUser',
+  schema: (baseSchema) => baseSchema.extend({
+    role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER']),
+    permissions: z.array(z.string())
+  }),
+  methods: {
+    grantPermission(permission) {
+      const currentPermissions = [...this.permissions];
+      if (!currentPermissions.includes(permission)) {
+        currentPermissions.push(permission);
+      }
+      return AdminUser.update(this, { permissions: currentPermissions });
+    },
+    revokePermission(permission) {
+      const currentPermissions = this.permissions.filter(p => p !== permission);
+      return AdminUser.update(this, { permissions: currentPermissions });
+    }
+  }
+});
+
+// Create admin user
+const admin = AdminUser.create({
+  id: 'user-123',
+  username: 'admin',
+  email: 'admin@example.com',
+  role: 'ADMIN',
+  permissions: ['users.view', 'users.edit']
+});
+
+// Use inherited methods
+const updatedAdmin = admin.updateEmail('admin@company.com');
+
+// Use specialized methods
+const enhancedAdmin = admin.grantPermission('settings.manage');
+```
+
+You can even change the identity field when extending:
+
+```javascript
+const ProductByCode = entity({
+  name: 'ProductByCode',
+  schema: z.object({
+    code: z.string(),
+    name: z.string(),
+    price: z.number()
+  }),
+  identity: 'code' // Using code as identity
+});
+
+const ProductById = ProductByCode.extend({
+  name: 'ProductById',
+  schema: (baseSchema) => baseSchema.extend({
+    id: z.string().uuid()
+  }),
+  identity: 'id' // Changed to use id as identity
+});
+```
+
+## Value Object Schema Helpers
+
+Domainify provides schema helpers to make it easier to use value objects in your entity schemas:
+
+### General Value Object Schema
+
+For any value object type:
+
+```javascript
+import { z } from 'zod';
+import { valueObjectSchema } from 'domainify';
+
+const schema = z.object({
+  // Accepts any value object
+  genericValueObj: valueObjectSchema(),
+  
+  // With custom validation and message
+  customValueObj: valueObjectSchema({ 
+    typeName: 'MoneyValue',
+    typeCheck: (val) => typeof val.amount === 'number' && typeof val.currency === 'string'
+  })
+});
+```
+
+### Specific Value Object Schema
+
+For specific value object types:
+
+```javascript
+import { z } from 'zod';
+import { specificValueObjectSchema, Email, Money } from 'domainify';
+
+const schema = z.object({
+  // Specifically validates Email value objects
+  email: specificValueObjectSchema(Email),
+  
+  // Specifically validates Money value objects
+  price: specificValueObjectSchema(Money)
+});
 ```
 
 ## Best Practices
 
-1. **Identify Entities by Their Identity** - Focus on what makes an entity unique in your domain
-2. **Make Entities Self-Validating** - Use Zod schemas to enforce validation at creation and update
-3. **Prefer Methods Over Direct Updates** - Encapsulate domain logic in methods rather than using `update` directly
-4. **Use Value Objects for Complex Attributes** - Decompose complex entities using value objects
-5. **Avoid Circular References** - When entities reference each other, use IDs rather than direct references
-6. **Consider Historization for Audit Needs** - Enable history tracking when you need to know how entities changed
-7. **Keep Entities Focused** - Each entity should have a clear responsibility in the domain
+1. **Make Identity Explicit**: Choose meaningful identity fields that naturally represent uniqueness in your domain.
 
-By following these principles, you'll build a rich domain model that accurately captures your business rules and maintains data integrity.
+2. **Prefer Methods Over Direct Updates**: Encapsulate domain logic in methods rather than using the `update` function directly.
+
+3. **Keep Entities Focused**: Each entity should represent a single concept in your domain with clear responsibilities.
+
+4. **Use Value Objects for Complex Attributes**: Decompose complex properties into value objects instead of primitive values.
+
+5. **Consider Immutability**: Even though entities can change, treat individual instances as immutable by using the update methods.
+
+6. **Historize When Needed**: Enable history tracking only when you need to track changes over time to avoid overhead.
+
+7. **Validate at Boundaries**: Entities enforce their own validation, ensuring data integrity at all times.
+
+8. **Avoid Deep Entity Nesting**: Prefer references (by ID) over direct nesting of entities within entities.
+
+9. **Extend for Specialization**: Use extension for creating specialized entity types rather than duplicating code.
+
+10. **Use Schema Helpers for Value Objects**: Leverage the schema helpers to integrate value objects properly.
+
+By following these principles, you'll build a rich, expressive domain model that accurately captures your business rules and maintains data integrity throughout your application.

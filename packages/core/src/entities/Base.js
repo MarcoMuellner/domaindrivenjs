@@ -17,14 +17,14 @@ import {ValidationError, DomainError} from '../errors/index.js';
  */
 
 /**
- * @template {z.ZodType} SchemaType
+ * @template SchemaType
  * @template T
  * @typedef {Object} EntityFactory<SchemaType, T>
- * @property {(data: z.infer<SchemaType>) => Entity<T>} create - Creates a new instance of the entity
+ * @property {(data: T) => Entity<T>} create - Creates a new instance of the entity
  * @property {(entity: Entity<T>, updates: PartialOf<T>) => Entity<T>} update - Updates an entity with new values
  * @property {SchemaType} schema - The Zod schema used for validation
  * @property {string} identity - The field used as identity
- * @property {<NewSchemaType extends z.ZodType, NewT>(options: {
+ * @property {<NewSchemaType, NewT>(options: {
  *   name: string,
  *   schema?: (schema: SchemaType) => NewSchemaType,
  *   methods?: Record<string, Function>,
@@ -42,8 +42,8 @@ import {ValidationError, DomainError} from '../errors/index.js';
  * 3. Have a lifecycle - they can be created, updated, and deleted
  * 4. Encapsulate domain logic and business rules
  *
- * @template {z.ZodType} SchemaType - The Zod schema type
- * @template {z.infer<SchemaType>} T - The inferred type from the Zod schema
+ * @template SchemaType - The Zod schema type
+ * @template T - The inferred type from the Zod schema
  * @param {object} options - Entity configuration
  * @param {string} options.name - Name of the entity
  * @param {SchemaType} options.schema - Zod schema for validation
@@ -65,7 +65,7 @@ export function entity({
 
     /**
      * Create a new entity instance
-     * @param {z.infer<SchemaType>} data - The data to create the entity from
+     * @param {T} data - The data to create the entity from
      * @returns {Entity<T>} A new entity instance
      * @throws {ValidationError} If validation fails
      */
@@ -202,8 +202,8 @@ export function entity({
     /**
      * Extends this entity with additional validation and methods
      *
-     * @template {z.ZodType} NewSchemaType - The new Zod schema type
-     * @template {z.infer<NewSchemaType>} NewT - The inferred type from the new Zod schema
+     * @template NewSchemaType - The new Zod schema type
+     * @template NewT - The inferred type from the new Zod schema
      * @param {object} options - Extension options
      * @param {string} options.name - Name of the extended entity
      * @param {(baseSchema: SchemaType) => NewSchemaType} [options.schema] - Function to transform the base schema
