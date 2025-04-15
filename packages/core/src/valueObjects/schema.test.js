@@ -242,19 +242,6 @@ describe('specificValueObjectSchema', () => {
             }
         };
 
-        const invalidObject2 = {
-            id: '123',
-            name: NonEmptyString.create('Test Item'),
-            values: [
-                IntegerNumber.create(1),
-                PositiveNumber.create(2), // Wrong type (PositiveNumber instead of IntegerNumber)
-                IntegerNumber.create(3)
-            ],
-            nested: {
-                description: StringValue.create('A detailed description')
-            }
-        };
-
         // Act & Assert
         expect(() => complexSchema.parse(validObject)).not.toThrow();
         expect(() => complexSchema.parse(invalidObject1)).toThrow();

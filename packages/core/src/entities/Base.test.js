@@ -3,12 +3,10 @@ import { z } from 'zod';
 import { entity } from './Base.js';
 import { ValidationError, DomainError } from '../errors/index.js';
 import {
-    String as StringValue,
     NonEmptyString,
     PositiveNumber
 } from '../valueObjects/primitives/index.js';
 import {
-    valueObjectSchema,
     specificValueObjectSchema
 } from '../valueObjects/schema.js';
 
