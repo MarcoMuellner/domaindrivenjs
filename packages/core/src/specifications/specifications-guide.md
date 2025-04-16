@@ -7,6 +7,7 @@ Specifications are a powerful pattern in Domain-Driven Design that encapsulate b
 Specifications answer the question: "Does this object satisfy this criteria?" They act as reusable predicates that evaluate objects against business rules and return true or false.
 
 Key characteristics:
+
 - **Encapsulate Business Rules** - Package complex conditions into named objects
 - **Reusable** - Can be applied across various contexts in your application
 - **Composable** - Can be combined with logical operators (AND, OR, NOT)
@@ -17,24 +18,21 @@ Key characteristics:
 The core of domainify's specification implementation is the `specification` factory function:
 
 ```javascript
-import { specification } from 'domainify';
+import { specification } from "domainify";
 
 const PremiumCustomer = specification({
-  name: 'PremiumCustomer',
-  
+  name: "PremiumCustomer",
+
   isSatisfiedBy(customer) {
     return customer.totalSpent > 1000 && customer.orderCount > 10;
   },
-  
+
   // Optional query translation for repositories
   toQuery() {
     return {
-      $and: [
-        { totalSpent: { $gt: 1000 } },
-        { orderCount: { $gt: 10 } }
-      ]
+      $and: [{ totalSpent: { $gt: 1000 } }, { orderCount: { $gt: 10 } }],
     };
-  }
+  },
 });
 
 // Usage
@@ -49,21 +47,21 @@ Specifications can be combined using logical operators to create more complex ru
 ```javascript
 // Individual specifications
 const HighValueOrder = specification({
-  name: 'HighValueOrder',
-  isSatisfiedBy: order => order.total > 100,
-  toQuery: () => ({ total: { $gt: 100 } })
+  name: "HighValueOrder",
+  isSatisfiedBy: (order) => order.total > 100,
+  toQuery: () => ({ total: { $gt: 100 } }),
 });
 
 const ExpressShipping = specification({
-  name: 'ExpressShipping',
-  isSatisfiedBy: order => order.shippingMethod === 'express',
-  toQuery: () => ({ shippingMethod: 'express' })
+  name: "ExpressShipping",
+  isSatisfiedBy: (order) => order.shippingMethod === "express",
+  toQuery: () => ({ shippingMethod: "express" }),
 });
 
 const InternationalOrder = specification({
-  name: 'InternationalOrder',
-  isSatisfiedBy: order => order.country !== 'US',
-  toQuery: () => ({ country: { $ne: 'US' } })
+  name: "InternationalOrder",
+  isSatisfiedBy: (order) => order.country !== "US",
+  toQuery: () => ({ country: { $ne: "US" } }),
 });
 
 // Composed specifications
@@ -73,7 +71,7 @@ const NeedsSpecialAttention = HighValueOrder.or(ExpressShipping);
 const DomesticOnly = InternationalOrder.not();
 
 // Usage
-const order = { total: 120, shippingMethod: 'express', country: 'CA' };
+const order = { total: 120, shippingMethod: "express", country: "CA" };
 const isPriority = PriorityOrder.isSatisfiedBy(order); // true
 const isDomestic = DomesticOnly.isSatisfiedBy(order); // false
 ```
@@ -92,63 +90,54 @@ import {
   propertyGreaterThan,
   propertyLessThan,
   propertyBetween,
-  propertyIn
-} from 'domainify';
+  propertyIn,
+} from "domainify";
 
 // Check if status is "active"
-const ActiveAccount = propertyEquals('status', 'active');
+const ActiveAccount = propertyEquals("status", "active");
 
 // Check if balance is greater than 1000
-const HighBalanceAccount = propertyGreaterThan('balance', 1000);
+const HighBalanceAccount = propertyGreaterThan("balance", 1000);
 
 // Check if creation date is within a range
 const RecentAccount = propertyBetween(
-  'createdAt', 
-  new Date('2023-01-01'), 
-  new Date()
+  "createdAt",
+  new Date("2023-01-01"),
+  new Date(),
 );
 
 // Check if category is one of several values
-const PriorityCategory = propertyIn('category', ['A', 'B', 'Premium']);
+const PriorityCategory = propertyIn("category", ["A", "B", "Premium"]);
 ```
 
 ### String Content Specifications
 
 ```javascript
-import {
-  propertyContains,
-  propertyMatches
-} from 'domainify';
+import { propertyContains, propertyMatches } from "domainify";
 
 // Check if name contains "Smith"
-const SmithFamily = propertyContains('name', 'Smith');
+const SmithFamily = propertyContains("name", "Smith");
 
 // Check if email matches a pattern
-const CorporateEmail = propertyMatches('email', /^[\w.-]+@company\.com$/);
+const CorporateEmail = propertyMatches("email", /^[\w.-]+@company\.com$/);
 ```
 
 ### Null/Existence Specifications
 
 ```javascript
-import {
-  propertyIsNull,
-  propertyIsNotNull
-} from 'domainify';
+import { propertyIsNull, propertyIsNotNull } from "domainify";
 
 // Check if a property is null/undefined
-const MissingAddress = propertyIsNull('address');
+const MissingAddress = propertyIsNull("address");
 
 // Check if a property exists and is not null
-const HasPhoneNumber = propertyIsNotNull('phoneNumber');
+const HasPhoneNumber = propertyIsNotNull("phoneNumber");
 ```
 
 ### Special Specifications
 
 ```javascript
-import {
-  alwaysTrue,
-  alwaysFalse
-} from 'domainify';
+import { alwaysTrue, alwaysFalse } from "domainify";
 
 // Always returns true - useful as default or placeholder
 const AllowAll = alwaysTrue();
@@ -162,21 +151,22 @@ const DenyAll = alwaysFalse();
 Create reusable specification factories for dynamic business rules:
 
 ```javascript
-import { parameterizedSpecification } from 'domainify';
+import { parameterizedSpecification } from "domainify";
 
 // Create a specification factory for price ranges
 const PriceRange = parameterizedSpecification({
   name: (params) => `Price Between ${params.min} and ${params.max}`,
-  
+
   createPredicate: (params) => {
-    return (product) => product.price >= params.min && product.price <= params.max;
+    return (product) =>
+      product.price >= params.min && product.price <= params.max;
   },
-  
+
   createQuery: (params) => {
     return () => ({
-      price: { $gte: params.min, $lte: params.max }
+      price: { $gte: params.min, $lte: params.max },
     });
-  }
+  },
 });
 
 // Create concrete specifications with different parameters
@@ -198,20 +188,25 @@ Specifications integrate seamlessly with repositories to efficiently query colle
 const ProductRepository = repository({
   aggregate: Product,
   adapter: mongoAdapter({
-    collectionName: 'products'
-  })
+    collectionName: "products",
+  }),
 });
 
 // Find products using specifications
-const ActiveProducts = propertyEquals('status', 'active');
-const HighValueProducts = propertyGreaterThan('price', 100);
-const FeaturedHighValueProducts = HighValueProducts.and(propertyEquals('featured', true));
+const ActiveProducts = propertyEquals("status", "active");
+const HighValueProducts = propertyGreaterThan("price", 100);
+const FeaturedHighValueProducts = HighValueProducts.and(
+  propertyEquals("featured", true),
+);
 
 // Get active products
-const activeProducts = await ProductRepository.findBySpecification(ActiveProducts);
+const activeProducts =
+  await ProductRepository.findBySpecification(ActiveProducts);
 
 // Get high-value featured products
-const featuredExpensiveProducts = await ProductRepository.findBySpecification(FeaturedHighValueProducts);
+const featuredExpensiveProducts = await ProductRepository.findBySpecification(
+  FeaturedHighValueProducts,
+);
 ```
 
 The repository will use the `toQuery` method from specifications to create efficient database queries.
@@ -223,16 +218,16 @@ Specifications can validate entities before operations:
 ```javascript
 // Check if an order can be placed
 const CanBePlaced = specification({
-  name: 'OrderCanBePlaced',
-  isSatisfiedBy: (order) => order.items.length > 0 && order.total > 0
+  name: "OrderCanBePlaced",
+  isSatisfiedBy: (order) => order.items.length > 0 && order.total > 0,
 });
 
 // In a domain service or use case
 function placeOrder(order) {
   if (!CanBePlaced.isSatisfiedBy(order)) {
-    throw new Error('Order cannot be placed');
+    throw new Error("Order cannot be placed");
   }
-  
+
   // Proceed with order placement
   return orderRepository.save(order.placeOrder());
 }
@@ -244,38 +239,37 @@ Specifications work well with aggregates for enforcing invariants:
 
 ```javascript
 const Order = aggregate({
-  name: 'Order',
+  name: "Order",
   schema: orderSchema,
-  identity: 'id',
-  
+  identity: "id",
+
   invariants: [
     {
-      name: 'Must have items when placed',
-      check: (order) => order.status !== 'PLACED' || order.items.length > 0
-    }
+      name: "Must have items when placed",
+      check: (order) => order.status !== "PLACED" || order.items.length > 0,
+    },
   ],
-  
+
   methods: {
     canBeCancelled() {
       return OrderCancellable.isSatisfiedBy(this);
     },
-    
+
     cancel() {
       if (!this.canBeCancelled()) {
-        throw new Error('Order cannot be cancelled');
+        throw new Error("Order cannot be cancelled");
       }
-      
-      return Order.update(this, { status: 'CANCELLED' });
-    }
-  }
+
+      return Order.update(this, { status: "CANCELLED" });
+    },
+  },
 });
 
 // Define cancellation rules as a specification
 const OrderCancellable = specification({
-  name: 'OrderCancellable',
-  isSatisfiedBy: (order) => 
-    ['DRAFT', 'PLACED'].includes(order.status) && 
-    !order.paymentCompleted
+  name: "OrderCancellable",
+  isSatisfiedBy: (order) =>
+    ["DRAFT", "PLACED"].includes(order.status) && !order.paymentCompleted,
 });
 ```
 

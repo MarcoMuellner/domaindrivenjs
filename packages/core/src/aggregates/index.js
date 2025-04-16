@@ -1,1 +1,1 @@
-export { aggregate} from './Base.js';
+export { aggregate } from "./Base.js";

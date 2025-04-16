@@ -7,6 +7,7 @@ Domain Events are a fundamental building block in Domain-Driven Design (DDD). Th
 Domain Events represent something meaningful that happened in your domain that domain experts care about. They are named using past-tense verbs (e.g., `OrderPlaced`, `PaymentReceived`) because they describe something that has already occurred.
 
 Key characteristics:
+
 - **Immutable** - Once created, events cannot be changed
 - **Self-descriptive** - Named using past-tense verbs to indicate what happened
 - **Timestamped** - Events record when they occurred
@@ -14,6 +15,7 @@ Key characteristics:
 - **Distributable** - Can be published to interested subscribers
 
 Domain events serve several important purposes:
+
 - Recording state changes for auditing and traceability
 - Enabling decoupled communication between domain components
 - Supporting eventual consistency across aggregates
@@ -24,43 +26,47 @@ Domain events serve several important purposes:
 The core of domainify's domain event implementation is the `domainEvent` factory function:
 
 ```javascript
-import { z } from 'zod';
-import { domainEvent } from 'domainify';
+import { z } from "zod";
+import { domainEvent } from "domainify";
 
 // Define an OrderPlaced event
 const OrderPlaced = domainEvent({
-  name: 'OrderPlaced',  // Past-tense verb describing what happened
-  schema: z.object({    // Schema for validation
+  name: "OrderPlaced", // Past-tense verb describing what happened
+  schema: z.object({
+    // Schema for validation
     orderId: z.string().uuid(),
     customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      name: z.string(),
-      quantity: z.number().int().positive(),
-      unitPrice: z.number().positive()
-    })),
+    items: z.array(
+      z.object({
+        productId: z.string().uuid(),
+        name: z.string(),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().positive(),
+      }),
+    ),
     total: z.number().positive(),
     // timestamp is automatically added to all events
   }),
-  metadata: {           // Optional metadata about the event
-    version: '1.0',
-    audience: ['fulfillment', 'billing']
-  }
+  metadata: {
+    // Optional metadata about the event
+    version: "1.0",
+    audience: ["fulfillment", "billing"],
+  },
 });
 
 // Create an event instance
 const orderPlacedEvent = OrderPlaced.create({
-  orderId: 'order-123',
-  customerId: 'cust-456',
+  orderId: "order-123",
+  customerId: "cust-456",
   items: [
     {
-      productId: 'prod-789',
-      name: 'Premium Widget',
+      productId: "prod-789",
+      name: "Premium Widget",
       quantity: 2,
-      unitPrice: 29.99
-    }
+      unitPrice: 29.99,
+    },
   ],
-  total: 59.98
+  total: 59.98,
 });
 ```
 
@@ -69,7 +75,7 @@ const orderPlacedEvent = OrderPlaced.create({
 The Event Bus is the central mechanism for publishing events and subscribing to them:
 
 ```javascript
-import { eventBus } from 'domainify';
+import { eventBus } from "domainify";
 
 // Subscribe to an event
 const subscription = eventBus.on(OrderPlaced, (event) => {
@@ -94,70 +100,79 @@ subscription.unsubscribe();
 Aggregates are the primary source of domain events. Events represent significant state changes within an aggregate:
 
 ```javascript
-import { z } from 'zod';
-import { aggregate, domainEvent } from 'domainify';
+import { z } from "zod";
+import { aggregate, domainEvent } from "domainify";
 
 // Define an OrderPlaced event
 const OrderPlaced = domainEvent({
-  name: 'OrderPlaced',
+  name: "OrderPlaced",
   schema: z.object({
     orderId: z.string().uuid(),
     customerId: z.string().uuid(),
-    total: z.number().positive()
-  })
+    total: z.number().positive(),
+  }),
 });
 
 // Define an Order aggregate
 const Order = aggregate({
-  name: 'Order',
+  name: "Order",
   schema: z.object({
     id: z.string().uuid(),
     customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive(),
-      unitPrice: z.number().positive()
-    })),
-    status: z.enum(['DRAFT', 'PLACED', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED']),
-    total: z.number().nonnegative().optional()
+    items: z.array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().positive(),
+      }),
+    ),
+    status: z.enum([
+      "DRAFT",
+      "PLACED",
+      "PAID",
+      "SHIPPED",
+      "COMPLETED",
+      "CANCELLED",
+    ]),
+    total: z.number().nonnegative().optional(),
   }),
-  identity: 'id',
+  identity: "id",
   methods: {
     addItem(product, quantity) {
       // Existing implementation...
-      return Order.update(this, { 
+      return Order.update(this, {
         items: newItems,
-        total
+        total,
       });
     },
-    
+
     placeOrder() {
       if (this.items.length === 0) {
-        throw new Error('Cannot place an empty order');
+        throw new Error("Cannot place an empty order");
       }
-      
+
       // Update aggregate state
       const placedOrder = Order.update(this, {
-        status: 'PLACED',
-        placedAt: new Date()
+        status: "PLACED",
+        placedAt: new Date(),
       });
-      
+
       // Emit domain event
       return placedOrder.emitEvent(OrderPlaced, {
         orderId: this.id,
         customerId: this.customerId,
-        total: this.total
+        total: this.total,
       });
-    }
-  }
+    },
+  },
 });
 
 // Using the aggregate and emitting events
 const order = Order.create({
-  id: 'order-123',
-  customerId: 'cust-456',
+  id: "order-123",
+  customerId: "cust-456",
   items: [],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 
 // Add items
@@ -179,15 +194,15 @@ Events are typically published when an aggregate is saved to a repository:
 const OrderRepository = repository({
   aggregate: Order,
   adapter: mongoAdapter({
-    collectionName: 'orders'
+    collectionName: "orders",
   }),
   // Optional event handling configuration
   events: {
     // Automatically publish events when saving
     publishOnSave: true,
     // Clear events after publishing
-    clearAfterPublish: true
-  }
+    clearAfterPublish: true,
+  },
 });
 
 // When saving the aggregate, events are automatically published
@@ -219,8 +234,8 @@ Event handlers should be focused on their specific responsibilities:
 eventBus.on(OrderPlaced, async (event) => {
   await notificationService.sendEmail({
     to: event.customerEmail,
-    subject: 'Your order has been placed',
-    body: `Thank you for your order #${event.orderId}`
+    subject: "Your order has been placed",
+    body: `Thank you for your order #${event.orderId}`,
   });
 });
 
@@ -229,7 +244,7 @@ eventBus.on(OrderPlaced, async (event) => {
   await analyticsService.trackOrder({
     orderId: event.orderId,
     total: event.total,
-    timestamp: event.timestamp
+    timestamp: event.timestamp,
   });
 });
 
@@ -237,7 +252,7 @@ eventBus.on(OrderPlaced, async (event) => {
 eventBus.on(OrderPlaced, async (event) => {
   await fulfillmentService.createShipment({
     orderId: event.orderId,
-    items: event.items
+    items: event.items,
   });
 });
 ```
@@ -249,26 +264,27 @@ You can extend existing events to create more specialized versions:
 ```javascript
 // Extend the base OrderPlaced event
 const InternationalOrderPlaced = OrderPlaced.extend({
-  name: 'InternationalOrderPlaced',
-  schema: (baseSchema) => baseSchema.extend({
-    shippingCountry: z.string(),
-    customsValue: z.number().nonnegative(),
-    hasCustomsDocuments: z.boolean()
-  }),
+  name: "InternationalOrderPlaced",
+  schema: (baseSchema) =>
+    baseSchema.extend({
+      shippingCountry: z.string(),
+      customsValue: z.number().nonnegative(),
+      hasCustomsDocuments: z.boolean(),
+    }),
   metadata: {
-    version: '1.0',
-    audience: ['international-fulfillment', 'customs']
-  }
+    version: "1.0",
+    audience: ["international-fulfillment", "customs"],
+  },
 });
 
 // Create the specialized event
 const internationalEvent = InternationalOrderPlaced.create({
-  orderId: 'order-789',
-  customerId: 'cust-101',
+  orderId: "order-789",
+  customerId: "cust-101",
   total: 129.99,
-  shippingCountry: 'Germany',
+  shippingCountry: "Germany",
   customsValue: 129.99,
-  hasCustomsDocuments: true
+  hasCustomsDocuments: true,
 });
 ```
 
@@ -277,17 +293,17 @@ const internationalEvent = InternationalOrderPlaced.create({
 You can create custom adapters for integrating with messaging systems:
 
 ```javascript
-import { createEventBus } from 'domainify';
+import { createEventBus } from "domainify";
 
 // Create a custom adapter for RabbitMQ
 const rabbitMQAdapter = {
   async publish(event) {
     await rabbitConnection.sendToQueue(
-      'domain-events', 
-      Buffer.from(JSON.stringify(event))
+      "domain-events",
+      Buffer.from(JSON.stringify(event)),
     );
   },
-  
+
   subscribe(eventType, handler) {
     const consumer = async (msg) => {
       const content = JSON.parse(msg.content.toString());
@@ -296,22 +312,22 @@ const rabbitMQAdapter = {
         channel.ack(msg);
       }
     };
-    
-    channel.consume('domain-events', consumer);
-    
+
+    channel.consume("domain-events", consumer);
+
     // Return unsubscribe function
     return () => channel.cancel(consumer);
-  }
+  },
 };
 
 // Create event bus with custom adapter
 const messagingEventBus = createEventBus({
-  adapter: rabbitMQAdapter
+  adapter: rabbitMQAdapter,
 });
 
 // Use the messaging-enabled event bus
 messagingEventBus.on(OrderPlaced, (event) => {
-  console.log('Received from RabbitMQ:', event);
+  console.log("Received from RabbitMQ:", event);
 });
 
 // Or replace the default adapter
@@ -333,7 +349,7 @@ try {
     await orderRepository.save(order);
     await inventoryRepository.save(inventory);
   });
-  
+
   // If transaction succeeds, publish all pending events
   await eventBus.publishPendingEvents();
 } catch (error) {
@@ -357,19 +373,19 @@ You can transform domain events into integration events:
 eventBus.on(OrderPlaced, async (domainEvent) => {
   // Transform to integration event
   const integrationEvent = {
-    type: 'order.placed',
+    type: "order.placed",
     payload: {
       order_id: domainEvent.orderId,
       customer_id: domainEvent.customerId,
       total_amount: domainEvent.total,
-      currency: 'USD',
-      timestamp: domainEvent.timestamp.toISOString()
+      currency: "USD",
+      timestamp: domainEvent.timestamp.toISOString(),
     },
-    version: '1.0'
+    version: "1.0",
   };
-  
+
   // Publish to external system
-  await messageQueue.publish('orders', integrationEvent);
+  await messageQueue.publish("orders", integrationEvent);
 });
 ```
 
@@ -398,7 +414,7 @@ const OrderPlaced = domainEvent({ name: 'OrderPlaced', schema: /*...*/ });
 // Apply events to reconstruct aggregate state
 function applyEvents(events) {
   let state = {};
-  
+
   for (const event of events) {
     switch (event.type) {
       case 'OrderCreated':
@@ -409,7 +425,7 @@ function applyEvents(events) {
           status: 'DRAFT'
         };
         break;
-        
+
       case 'ItemAdded':
         state.items.push({
           productId: event.productId,
@@ -418,7 +434,7 @@ function applyEvents(events) {
           unitPrice: event.unitPrice
         });
         break;
-        
+
       case 'OrderPlaced':
         state.status = 'PLACED';
         state.placedAt = event.timestamp;
@@ -426,7 +442,7 @@ function applyEvents(events) {
         break;
     }
   }
-  
+
   return Order.create(state);
 }
 

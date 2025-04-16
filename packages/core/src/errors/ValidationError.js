@@ -1,4 +1,4 @@
-import { DomainError } from './DomainError.js';
+import { DomainError } from "./DomainError.js";
 
 /**
  * Error thrown when domain object validation fails

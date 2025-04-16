@@ -19,27 +19,32 @@ The repository pattern ensures that your domain model remains focused on busines
 The core of domainify's repository implementation is the `repository` factory function:
 
 ```javascript
-import { z } from 'zod';
-import { 
-  aggregate, 
-  repository, 
-  createInMemoryAdapter 
-} from 'domainify';
+import { z } from "zod";
+import { aggregate, repository, createInMemoryAdapter } from "domainify";
 
 // Define an Order aggregate
 const Order = aggregate({
-  name: 'Order',
+  name: "Order",
   schema: z.object({
     id: z.string().uuid(),
     customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive(),
-      unitPrice: z.number().positive()
-    })),
-    status: z.enum(['DRAFT', 'PLACED', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED'])
+    items: z.array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().positive(),
+      }),
+    ),
+    status: z.enum([
+      "DRAFT",
+      "PLACED",
+      "PAID",
+      "SHIPPED",
+      "COMPLETED",
+      "CANCELLED",
+    ]),
   }),
-  identity: 'id',
+  identity: "id",
   // ... methods and invariants
 });
 
@@ -47,13 +52,13 @@ const Order = aggregate({
 const OrderRepository = repository({
   aggregate: Order,
   adapter: createInMemoryAdapter({
-    identity: 'id',
-    initialData: [] // Optional initial data
+    identity: "id",
+    initialData: [], // Optional initial data
   }),
   events: {
-    publishOnSave: true,      // Auto-publish events when saving
-    clearAfterPublish: true   // Clear events after publishing
-  }
+    publishOnSave: true, // Auto-publish events when saving
+    clearAfterPublish: true, // Clear events after publishing
+  },
 });
 ```
 
@@ -66,13 +71,13 @@ Domainify provides adapters for different storage technologies to keep your doma
 The in-memory adapter is useful for testing or simple applications:
 
 ```javascript
-import { createInMemoryAdapter } from 'domainify';
+import { createInMemoryAdapter } from "domainify";
 
 const inMemoryAdapter = createInMemoryAdapter({
-  identity: 'id',
+  identity: "id",
   initialData: [
-    { id: 'order-123', customerId: 'cust-456', items: [], status: 'DRAFT' }
-  ]
+    { id: "order-123", customerId: "cust-456", items: [], status: "DRAFT" },
+  ],
 });
 ```
 
@@ -81,15 +86,15 @@ const inMemoryAdapter = createInMemoryAdapter({
 The Prisma adapter connects to databases using Prisma ORM:
 
 ```javascript
-import { PrismaClient } from '@prisma/client';
-import { createPrismaAdapter } from 'domainify';
+import { PrismaClient } from "@prisma/client";
+import { createPrismaAdapter } from "domainify";
 
 const prisma = new PrismaClient();
 
 const prismaAdapter = createPrismaAdapter({
   prisma,
-  model: 'order',  // Prisma model name
-  identity: 'id',
+  model: "order", // Prisma model name
+  identity: "id",
   // Optional custom serialization
   serialize: (aggregate) => {
     // Convert domain object to database model
@@ -97,7 +102,7 @@ const prismaAdapter = createPrismaAdapter({
       id: aggregate.id,
       customerId: aggregate.customerId,
       items: JSON.stringify(aggregate.items),
-      status: aggregate.status
+      status: aggregate.status,
     };
   },
   // Optional custom deserialization
@@ -107,9 +112,9 @@ const prismaAdapter = createPrismaAdapter({
       id: data.id,
       customerId: data.customerId,
       items: JSON.parse(data.items),
-      status: data.status
+      status: data.status,
     });
-  }
+  },
 });
 ```
 
@@ -141,34 +146,34 @@ Repositories provide a collection-like interface for working with aggregates:
 
 ```javascript
 // Find by ID
-const order = await OrderRepository.findById('order-123');
+const order = await OrderRepository.findById("order-123");
 if (order) {
   console.log(`Found order: ${order.id}`);
 } else {
-  console.log('Order not found');
+  console.log("Order not found");
 }
 
 // Find by multiple IDs
-const ordersMap = await OrderRepository.findByIds(['order-123', 'order-456']);
-const order123 = ordersMap.get('order-123');
+const ordersMap = await OrderRepository.findByIds(["order-123", "order-456"]);
+const order123 = ordersMap.get("order-123");
 
 // Find all matching a filter
-const draftOrders = await OrderRepository.findAll({ status: 'DRAFT' });
+const draftOrders = await OrderRepository.findAll({ status: "DRAFT" });
 console.log(`Found ${draftOrders.length} draft orders`);
 
 // Find one matching a filter
-const customerOrder = await OrderRepository.findOne({ 
-  customerId: 'cust-789',
-  status: 'PLACED' 
+const customerOrder = await OrderRepository.findOne({
+  customerId: "cust-789",
+  status: "PLACED",
 });
 
 // Check if an aggregate exists
-if (await OrderRepository.exists('order-123')) {
-  console.log('Order exists');
+if (await OrderRepository.exists("order-123")) {
+  console.log("Order exists");
 }
 
 // Count aggregates
-const placedOrderCount = await OrderRepository.count({ status: 'PLACED' });
+const placedOrderCount = await OrderRepository.count({ status: "PLACED" });
 console.log(`There are ${placedOrderCount} placed orders`);
 ```
 
@@ -184,18 +189,18 @@ const HighValueOrderSpecification = {
   },
   // Optional optimization for database queries
   toQuery: () => ({
-    total: { $gt: 1000 }
-  })
+    total: { $gt: 1000 },
+  }),
 };
 
 // Use the specification
 const highValueOrders = await OrderRepository.findBySpecification(
-  HighValueOrderSpecification
+  HighValueOrderSpecification,
 );
 
 // You can also use a simple predicate function
 const priorityOrders = await OrderRepository.findBySpecification(
-  order => order.isExpedited && order.status === 'PLACED'
+  (order) => order.isExpedited && order.status === "PLACED",
 );
 ```
 
@@ -204,10 +209,10 @@ const priorityOrders = await OrderRepository.findBySpecification(
 ```javascript
 // Create a new order
 const newOrder = Order.create({
-  id: 'order-456',
-  customerId: 'cust-789',
+  id: "order-456",
+  customerId: "cust-789",
   items: [],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 
 // Add items to the order
@@ -227,7 +232,7 @@ await OrderRepository.saveAll([order1, order2, order3]);
 
 ```javascript
 // Delete an order
-await OrderRepository.delete('order-123');
+await OrderRepository.delete("order-123");
 ```
 
 ## Domain Events Integration
@@ -236,13 +241,13 @@ Repositories can automatically publish domain events when aggregates are saved:
 
 ```javascript
 // Define an order placed event handler
-eventBus.on('OrderPlaced', async (event) => {
+eventBus.on("OrderPlaced", async (event) => {
   console.log(`Order ${event.orderId} was placed with total ${event.total}`);
   await emailService.sendOrderConfirmation(event.customerId, event.orderId);
 });
 
 // When an order is placed and saved, the event is published
-const order = await OrderRepository.findById('order-123');
+const order = await OrderRepository.findById("order-123");
 const placedOrder = order.placeOrder(); // Attaches OrderPlaced event
 await OrderRepository.save(placedOrder); // Automatically publishes the event
 ```
@@ -257,30 +262,30 @@ const OrderRepository = {
   ...repository({
     aggregate: Order,
     adapter: prismaAdapter,
-    events: { publishOnSave: true }
+    events: { publishOnSave: true },
   }),
-  
+
   // Custom methods
   async findByCustomer(customerId) {
     return this.findAll({ customerId });
   },
-  
+
   async findPendingOrders() {
-    return this.findAll({ 
-      status: { in: ['PLACED', 'PAID'] } 
+    return this.findAll({
+      status: { in: ["PLACED", "PAID"] },
     });
   },
-  
+
   async markAsShipped(orderId) {
     const order = await this.findById(orderId);
     if (!order) {
       throw new Error(`Order not found: ${orderId}`);
     }
-    
+
     const shippedOrder = order.ship();
     await this.save(shippedOrder);
     return shippedOrder;
-  }
+  },
 };
 ```
 
@@ -295,35 +300,35 @@ function createCustomAdapter(options) {
     async findById(id) {
       // Implementation
     },
-    
+
     async findAll(filter) {
       // Implementation
     },
-    
+
     async save(aggregate) {
       // Implementation
     },
-    
+
     async delete(id) {
       // Implementation
     },
-    
+
     // Optional methods for optimization
     async findByIds(ids) {
       // Implementation
     },
-    
+
     async saveAll(aggregates) {
       // Implementation
     },
-    
+
     async count(filter) {
       // Implementation
     },
-    
+
     async findBySpecification(specification) {
       // Implementation
-    }
+    },
   };
 }
 ```
@@ -337,31 +342,36 @@ The in-memory adapter is particularly useful for testing:
 const testRepository = repository({
   aggregate: Order,
   adapter: createInMemoryAdapter({
-    identity: 'id',
+    identity: "id",
     initialData: [
-      { id: 'order-test-1', customerId: 'cust-test', items: [], status: 'DRAFT' }
-    ]
-  })
+      {
+        id: "order-test-1",
+        customerId: "cust-test",
+        items: [],
+        status: "DRAFT",
+      },
+    ],
+  }),
 });
 
 // Test finding an order
-const order = await testRepository.findById('order-test-1');
+const order = await testRepository.findById("order-test-1");
 expect(order).not.toBeNull();
-expect(order.id).toBe('order-test-1');
+expect(order.id).toBe("order-test-1");
 
 // Test updating an order
 const placedOrder = order.placeOrder();
 await testRepository.save(placedOrder);
 
 // Verify the update
-const updated = await testRepository.findById('order-test-1');
-expect(updated.status).toBe('PLACED');
+const updated = await testRepository.findById("order-test-1");
+expect(updated.status).toBe("PLACED");
 
 // Test additional methods
-const exists = await testRepository.exists('order-test-1');
+const exists = await testRepository.exists("order-test-1");
 expect(exists).toBe(true);
 
-const count = await testRepository.count({ status: 'PLACED' });
+const count = await testRepository.count({ status: "PLACED" });
 expect(count).toBe(1);
 ```
 

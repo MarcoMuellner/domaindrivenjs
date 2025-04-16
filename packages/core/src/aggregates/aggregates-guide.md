@@ -19,59 +19,71 @@ Aggregates define transactional boundaries and are the primary mechanism for enf
 The core of domainify's aggregate implementation is the `aggregate` factory function:
 
 ```javascript
-import { z } from 'zod';
-import { aggregate } from 'domainify';
+import { z } from "zod";
+import { aggregate } from "domainify";
 
 // Define an Order aggregate
 const Order = aggregate({
-  name: 'Order',                         // Name of the aggregate
-  schema: z.object({                     // Zod schema for validation
+  name: "Order", // Name of the aggregate
+  schema: z.object({
+    // Zod schema for validation
     id: z.string().uuid(),
     customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      name: z.string().min(1),
-      quantity: z.number().int().positive(),
-      unitPrice: z.number().positive()
-    })),
-    status: z.enum(['DRAFT', 'PLACED', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED']),
+    items: z.array(
+      z.object({
+        productId: z.string().uuid(),
+        name: z.string().min(1),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().positive(),
+      }),
+    ),
+    status: z.enum([
+      "DRAFT",
+      "PLACED",
+      "PAID",
+      "SHIPPED",
+      "COMPLETED",
+      "CANCELLED",
+    ]),
     placedAt: z.date().optional(),
-    total: z.number().nonnegative().optional()
+    total: z.number().nonnegative().optional(),
   }),
-  identity: 'id',                        // Which field is the identity
-  invariants: [                          // Business rules to enforce
+  identity: "id", // Which field is the identity
+  invariants: [
+    // Business rules to enforce
     {
-      name: 'Order must have at least one item when placed',
-      check: order => order.status === 'DRAFT' || order.items.length > 0,
-      message: 'Cannot place an order without items'
+      name: "Order must have at least one item when placed",
+      check: (order) => order.status === "DRAFT" || order.items.length > 0,
+      message: "Cannot place an order without items",
     },
     {
-      name: 'Completed or cancelled order cannot be modified',
-      check: order => !['COMPLETED', 'CANCELLED'].includes(order.status),
-      message: 'Cannot modify a completed or cancelled order'
-    }
+      name: "Completed or cancelled order cannot be modified",
+      check: (order) => !["COMPLETED", "CANCELLED"].includes(order.status),
+      message: "Cannot modify a completed or cancelled order",
+    },
   ],
-  methods: {                             // Domain behaviors
+  methods: {
+    // Domain behaviors
     addItem(product, quantity) {
       // Implementation that adds an item to the order
       const existingItemIndex = this.items.findIndex(
-        item => item.productId === product.id
+        (item) => item.productId === product.id,
       );
-      
+
       let newItems;
-      
+
       if (existingItemIndex >= 0) {
         // Update existing item
         const item = this.items[existingItemIndex];
         const updatedItem = {
           ...item,
-          quantity: item.quantity + quantity
+          quantity: item.quantity + quantity,
         };
-        
+
         newItems = [
           ...this.items.slice(0, existingItemIndex),
           updatedItem,
-          ...this.items.slice(existingItemIndex + 1)
+          ...this.items.slice(existingItemIndex + 1),
         ];
       } else {
         // Add new item
@@ -79,42 +91,42 @@ const Order = aggregate({
           productId: product.id,
           name: product.name,
           quantity,
-          unitPrice: product.price
+          unitPrice: product.price,
         };
-        
+
         newItems = [...this.items, newItem];
       }
-      
+
       // Calculate new total
       const total = newItems.reduce(
-        (sum, item) => sum + (item.unitPrice * item.quantity),
-        0
+        (sum, item) => sum + item.unitPrice * item.quantity,
+        0,
       );
-      
-      return Order.update(this, { 
+
+      return Order.update(this, {
         items: newItems,
-        total
+        total,
       });
     },
-    
+
     placeOrder() {
       return Order.update(this, {
-        status: 'PLACED',
-        placedAt: new Date()
+        status: "PLACED",
+        placedAt: new Date(),
       });
     },
-    
+
     cancelOrder(reason) {
-      if (this.status === 'SHIPPED' || this.status === 'COMPLETED') {
-        throw new Error('Cannot cancel shipped or completed orders');
+      if (this.status === "SHIPPED" || this.status === "COMPLETED") {
+        throw new Error("Cannot cancel shipped or completed orders");
       }
-      
+
       return Order.update(this, {
-        status: 'CANCELLED'
+        status: "CANCELLED",
       });
-    }
+    },
   },
-  historize: false                       // Optional history tracking
+  historize: false, // Optional history tracking
 });
 ```
 
@@ -126,10 +138,10 @@ Create new aggregate instances using the `create` method:
 
 ```javascript
 const order = Order.create({
-  id: 'order-123',
-  customerId: 'cust-456',
+  id: "order-123",
+  customerId: "cust-456",
   items: [],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 ```
 
@@ -141,16 +153,16 @@ Modify aggregates using either the aggregate factory or aggregate methods:
 
 ```javascript
 // Using the factory's update method:
-const updatedOrder = Order.update(order, { 
-  status: 'PLACED',
-  placedAt: new Date()
+const updatedOrder = Order.update(order, {
+  status: "PLACED",
+  placedAt: new Date(),
 });
 
 // Or using domain methods (recommended):
 const product = {
-  id: 'prod-789',
-  name: 'Premium Widget',
-  price: 99.99
+  id: "prod-789",
+  name: "Premium Widget",
+  price: 99.99,
 };
 
 const orderWithItem = order.addItem(product, 2);
@@ -166,11 +178,11 @@ Invariants are business rules that must always be satisfied within an aggregate.
 ```javascript
 invariants: [
   {
-    name: 'Order must have at least one item when placed',
-    check: order => order.status === 'DRAFT' || order.items.length > 0,
-    message: 'Cannot place an order without items'
-  }
-]
+    name: "Order must have at least one item when placed",
+    check: (order) => order.status === "DRAFT" || order.items.length > 0,
+    message: "Cannot place an order without items",
+  },
+];
 ```
 
 If an invariant is violated, an `InvariantViolationError` is thrown:
@@ -178,7 +190,7 @@ If an invariant is violated, an `InvariantViolationError` is thrown:
 ```javascript
 try {
   // This will throw if the order has no items
-  order.placeOrder(); 
+  order.placeOrder();
 } catch (error) {
   if (error instanceof InvariantViolationError) {
     console.error(`Business rule violated: ${error.invariantName}`);
@@ -193,24 +205,25 @@ Like entities, aggregates compare equality based on their identity, not their at
 
 ```javascript
 const order1 = Order.create({
-  id: 'order-123',
-  customerId: 'cust-456',
+  id: "order-123",
+  customerId: "cust-456",
   items: [],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 
 const order2 = Order.create({
-  id: 'order-123',            // Same ID
-  customerId: 'cust-456',
-  items: [                    // Different items
+  id: "order-123", // Same ID
+  customerId: "cust-456",
+  items: [
+    // Different items
     {
-      productId: 'prod-789',
-      name: 'Widget',
+      productId: "prod-789",
+      name: "Widget",
       quantity: 1,
-      unitPrice: 10.99
-    }
+      unitPrice: 10.99,
+    },
   ],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 
 // Equal because they have the same identity
@@ -224,15 +237,15 @@ Like entities, aggregate instances are immutable. State changes create new insta
 ```javascript
 // This throws an error - aggregates are immutable
 try {
-  order.status = 'PLACED'; // Error: Cannot assign to read-only property
+  order.status = "PLACED"; // Error: Cannot assign to read-only property
 } catch (error) {
   console.error(error);
 }
 
 // Instead, use update or methods
-const placedOrder = Order.update(order, { status: 'PLACED' });
+const placedOrder = Order.update(order, { status: "PLACED" });
 console.log(placedOrder.status); // 'PLACED'
-console.log(order.status);       // Still 'DRAFT'
+console.log(order.status); // Still 'DRAFT'
 ```
 
 ## Integrating with Value Objects
@@ -240,50 +253,50 @@ console.log(order.status);       // Still 'DRAFT'
 Aggregates can contain value objects as properties, just like entities:
 
 ```javascript
-import { z } from 'zod';
-import { 
-  aggregate, 
-  NonEmptyString, 
+import { z } from "zod";
+import {
+  aggregate,
+  NonEmptyString,
   PositiveNumber,
-  specificValueObjectSchema 
-} from 'domainify';
+  specificValueObjectSchema,
+} from "domainify";
 
 const Product = aggregate({
-  name: 'Product',
+  name: "Product",
   schema: z.object({
     id: z.string().uuid(),
     name: specificValueObjectSchema(NonEmptyString),
     price: specificValueObjectSchema(PositiveNumber),
     stockLevel: z.number().int().nonnegative(),
-    isActive: z.boolean().default(true)
+    isActive: z.boolean().default(true),
   }),
-  identity: 'id',
+  identity: "id",
   invariants: [
     {
-      name: 'Product cannot be sold if out of stock',
-      check: product => !product.isActive || product.stockLevel > 0,
-      message: 'Cannot sell a product with zero stock'
-    }
+      name: "Product cannot be sold if out of stock",
+      check: (product) => !product.isActive || product.stockLevel > 0,
+      message: "Cannot sell a product with zero stock",
+    },
   ],
   methods: {
     decreaseStock(quantity) {
       if (quantity > this.stockLevel) {
-        throw new Error('Not enough stock available');
+        throw new Error("Not enough stock available");
       }
-      
+
       return Product.update(this, {
-        stockLevel: this.stockLevel - quantity
+        stockLevel: this.stockLevel - quantity,
       });
-    }
-  }
+    },
+  },
 });
 
 // Create with value objects
 const product = Product.create({
-  id: 'prod-123',
-  name: NonEmptyString.create('Premium Widget'),
+  id: "prod-123",
+  name: NonEmptyString.create("Premium Widget"),
   price: PositiveNumber.create(99.99),
-  stockLevel: 10
+  stockLevel: 10,
 });
 ```
 
@@ -293,29 +306,31 @@ Enable history tracking by setting `historize: true`:
 
 ```javascript
 const HistorizedOrder = aggregate({
-  name: 'HistorizedOrder',
+  name: "HistorizedOrder",
   schema: z.object({
     id: z.string().uuid(),
     customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive()
-    })),
-    status: z.enum(['DRAFT', 'PLACED']),
-    _history: z.array(z.any()).optional()
+    items: z.array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      }),
+    ),
+    status: z.enum(["DRAFT", "PLACED"]),
+    _history: z.array(z.any()).optional(),
   }),
-  identity: 'id',
-  historize: true
+  identity: "id",
+  historize: true,
 });
 
 const order = HistorizedOrder.create({
-  id: 'order-123',
-  customerId: 'cust-456',
+  id: "order-123",
+  customerId: "cust-456",
   items: [],
-  status: 'DRAFT'
+  status: "DRAFT",
 });
 
-const placedOrder = HistorizedOrder.update(order, { status: 'PLACED' });
+const placedOrder = HistorizedOrder.update(order, { status: "PLACED" });
 
 console.log(placedOrder._history);
 /* History structure:
@@ -337,57 +352,58 @@ Create more specialized aggregates by extending existing ones:
 
 ```javascript
 const SubscriptionOrder = Order.extend({
-  name: 'SubscriptionOrder',
-  schema: (baseSchema) => baseSchema.extend({
-    renewalPeriod: z.enum(['MONTHLY', 'QUARTERLY', 'YEARLY']),
-    nextRenewalDate: z.date(),
-    isActive: z.boolean().default(true)
-  }),
+  name: "SubscriptionOrder",
+  schema: (baseSchema) =>
+    baseSchema.extend({
+      renewalPeriod: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
+      nextRenewalDate: z.date(),
+      isActive: z.boolean().default(true),
+    }),
   invariants: [
     {
-      name: 'Next renewal date must be in the future',
-      check: order => order.nextRenewalDate > new Date(),
-      message: 'Renewal date must be in the future'
+      name: "Next renewal date must be in the future",
+      check: (order) => order.nextRenewalDate > new Date(),
+      message: "Renewal date must be in the future",
     },
     {
-      name: 'Inactive subscription cannot be renewed',
-      check: order => order.isActive || order.status === 'DRAFT',
-      message: 'Cannot renew an inactive subscription'
-    }
+      name: "Inactive subscription cannot be renewed",
+      check: (order) => order.isActive || order.status === "DRAFT",
+      message: "Cannot renew an inactive subscription",
+    },
   ],
   methods: {
     renew() {
       const nextDate = new Date(this.nextRenewalDate);
-      
+
       switch (this.renewalPeriod) {
-        case 'MONTHLY':
+        case "MONTHLY":
           nextDate.setMonth(nextDate.getMonth() + 1);
           break;
-        case 'QUARTERLY':
+        case "QUARTERLY":
           nextDate.setMonth(nextDate.getMonth() + 3);
           break;
-        case 'YEARLY':
+        case "YEARLY":
           nextDate.setFullYear(nextDate.getFullYear() + 1);
           break;
       }
-      
+
       return SubscriptionOrder.update(this, {
-        nextRenewalDate: nextDate
+        nextRenewalDate: nextDate,
       });
     },
-    
+
     changeRenewalPeriod(period) {
       return SubscriptionOrder.update(this, {
-        renewalPeriod: period
+        renewalPeriod: period,
       });
     },
-    
+
     deactivate() {
       return SubscriptionOrder.update(this, {
-        isActive: false
+        isActive: false,
       });
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -421,15 +437,15 @@ Repositories will provide a collection-like interface for storing and retrieving
 const OrderRepository = repository({
   aggregate: Order,
   adapter: mongoAdapter({
-    collectionName: 'orders'
-  })
+    collectionName: "orders",
+  }),
 });
 
 // Save an aggregate
 await OrderRepository.save(order);
 
 // Retrieve by ID
-const order = await OrderRepository.findById('order-123');
+const order = await OrderRepository.findById("order-123");
 ```
 
 ## Best Practices

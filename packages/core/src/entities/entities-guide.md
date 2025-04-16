@@ -18,20 +18,22 @@ The key distinction between entities and value objects is that **two entities wi
 The core of domainify's entity implementation is the `entity` factory function:
 
 ```javascript
-import { z } from 'zod';
-import { entity } from 'domainify';
+import { z } from "zod";
+import { entity } from "domainify";
 
 // Define a Customer entity
 const Customer = entity({
-  name: 'Customer',                        // Name of the entity
-  schema: z.object({                       // Zod schema for validation
+  name: "Customer", // Name of the entity
+  schema: z.object({
+    // Zod schema for validation
     id: z.string().uuid(),
     name: z.string().min(1),
     email: z.string().email(),
-    address: z.string().optional()
+    address: z.string().optional(),
   }),
-  identity: 'id',                          // Which field is the identity
-  methods: {                               // Custom domain methods
+  identity: "id", // Which field is the identity
+  methods: {
+    // Custom domain methods
     updateEmail(email) {
       return Customer.update(this, { email });
     },
@@ -40,9 +42,9 @@ const Customer = entity({
     },
     moveToAddress(address) {
       return Customer.update(this, { address });
-    }
+    },
   },
-  historize: false                         // Optional history tracking
+  historize: false, // Optional history tracking
 });
 ```
 
@@ -54,9 +56,9 @@ Create new entity instances using the `create` method:
 
 ```javascript
 const customer = Customer.create({
-  id: 'cust-123',
-  name: 'John Doe',
-  email: 'john@example.com'
+  id: "cust-123",
+  name: "John Doe",
+  email: "john@example.com",
 });
 ```
 
@@ -68,13 +70,13 @@ Update entities using either the entity factory or entity methods:
 
 ```javascript
 // Using the factory's update method:
-const updatedCustomer = Customer.update(customer, { 
-  name: 'John Smith' 
+const updatedCustomer = Customer.update(customer, {
+  name: "John Smith",
 });
 
 // Or using domain methods (recommended):
-const updatedCustomer = customer.updateEmail('john.smith@example.com');
-const movedCustomer = customer.moveToAddress('123 Main St, Anytown');
+const updatedCustomer = customer.updateEmail("john.smith@example.com");
+const movedCustomer = customer.moveToAddress("123 Main St, Anytown");
 ```
 
 ### Identity-Based Equality
@@ -83,15 +85,15 @@ Entities compare equality based on their identity, not their attributes:
 
 ```javascript
 const customer1 = Customer.create({
-  id: 'cust-123',
-  name: 'John',
-  email: 'john@example.com'
+  id: "cust-123",
+  name: "John",
+  email: "john@example.com",
 });
 
 const customer2 = Customer.create({
-  id: 'cust-123',            // Same ID
-  name: 'John Smith',        // Different name
-  email: 'john@company.com'  // Different email
+  id: "cust-123", // Same ID
+  name: "John Smith", // Different name
+  email: "john@company.com", // Different email
 });
 
 // Equal because they have the same identity
@@ -105,15 +107,15 @@ Like value objects, entity instances are immutable. State changes create new ins
 ```javascript
 // This throws an error - entities are immutable
 try {
-  customer.name = 'Jane Doe'; // Error: Cannot assign to read-only property
+  customer.name = "Jane Doe"; // Error: Cannot assign to read-only property
 } catch (error) {
   console.error(error);
 }
 
 // Instead, use update or methods
-const updatedCustomer = Customer.update(customer, { name: 'Jane Doe' });
+const updatedCustomer = Customer.update(customer, { name: "Jane Doe" });
 console.log(updatedCustomer.name); // 'Jane Doe'
-console.log(customer.name);        // Still 'John Doe'
+console.log(customer.name); // Still 'John Doe'
 ```
 
 ### Identity Protection
@@ -123,7 +125,7 @@ The identity field is protected from changes:
 ```javascript
 try {
   // This throws an error - cannot change identity
-  Customer.update(customer, { id: 'cust-456' });
+  Customer.update(customer, { id: "cust-456" });
 } catch (error) {
   console.error(error); // Cannot change identity of Customer
 }
@@ -135,28 +137,28 @@ Enable history tracking by setting `historize: true`:
 
 ```javascript
 const AuditedCustomer = entity({
-  name: 'AuditedCustomer',
+  name: "AuditedCustomer",
   schema: z.object({
     id: z.string().uuid(),
     name: z.string().min(1),
     email: z.string().email(),
-    status: z.enum(['ACTIVE', 'INACTIVE']),
-    _history: z.array(z.any()).optional()
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+    _history: z.array(z.any()).optional(),
   }),
-  identity: 'id',
+  identity: "id",
   historize: true, // Enable history tracking
   methods: {
     deactivate() {
-      return AuditedCustomer.update(this, { status: 'INACTIVE' });
-    }
-  }
+      return AuditedCustomer.update(this, { status: "INACTIVE" });
+    },
+  },
 });
 
 const customer = AuditedCustomer.create({
-  id: 'cust-123',
-  name: 'John Doe',
-  email: 'john@example.com',
-  status: 'ACTIVE'
+  id: "cust-123",
+  name: "John Doe",
+  email: "john@example.com",
+  status: "ACTIVE",
 });
 
 const inactiveCustomer = customer.deactivate();
@@ -182,47 +184,47 @@ Only actual changes are recorded in history. Updates that don't change values wo
 Entities can contain value objects as properties. Use the value object schema helpers for proper validation:
 
 ```javascript
-import { z } from 'zod';
-import { 
-  entity, 
-  NonEmptyString, 
-  Email, 
+import { z } from "zod";
+import {
+  entity,
+  NonEmptyString,
+  Email,
   Money,
-  valueObjectSchema, 
-  specificValueObjectSchema 
-} from 'domainify';
+  valueObjectSchema,
+  specificValueObjectSchema,
+} from "domainify";
 
 const Order = entity({
-  name: 'Order',
+  name: "Order",
   schema: z.object({
     id: z.string().uuid(),
     customerName: specificValueObjectSchema(NonEmptyString),
     customerEmail: specificValueObjectSchema(Email),
     totalAmount: specificValueObjectSchema(Money),
     // Any value object (not type-specific)
-    metadata: valueObjectSchema()
+    metadata: valueObjectSchema(),
   }),
-  identity: 'id',
+  identity: "id",
   methods: {
     updateCustomerName(name) {
       return Order.update(this, {
-        customerName: NonEmptyString.create(name)
+        customerName: NonEmptyString.create(name),
       });
-    }
-  }
+    },
+  },
 });
 
 // Create with value objects
 const order = Order.create({
-  id: 'order-123',
-  customerName: NonEmptyString.create('John Doe'),
-  customerEmail: Email.create('john@example.com'),
-  totalAmount: Money.create({ amount: 99.99, currency: 'USD' }),
-  metadata: SomeValueObject.create({ version: '1.0' })
+  id: "order-123",
+  customerName: NonEmptyString.create("John Doe"),
+  customerEmail: Email.create("john@example.com"),
+  totalAmount: Money.create({ amount: 99.99, currency: "USD" }),
+  metadata: SomeValueObject.create({ version: "1.0" }),
 });
 
 // Update value object properties
-const updatedOrder = order.updateCustomerName('Jane Smith');
+const updatedOrder = order.updateCustomerName("Jane Smith");
 ```
 
 ## Extending Entities
@@ -231,26 +233,27 @@ Create more specialized entities by extending existing ones:
 
 ```javascript
 const BaseUser = entity({
-  name: 'BaseUser',
+  name: "BaseUser",
   schema: z.object({
     id: z.string().uuid(),
     username: z.string().min(3),
-    email: z.string().email()
+    email: z.string().email(),
   }),
-  identity: 'id',
+  identity: "id",
   methods: {
     updateEmail(email) {
       return BaseUser.update(this, { email });
-    }
-  }
+    },
+  },
 });
 
 const AdminUser = BaseUser.extend({
-  name: 'AdminUser',
-  schema: (baseSchema) => baseSchema.extend({
-    role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER']),
-    permissions: z.array(z.string())
-  }),
+  name: "AdminUser",
+  schema: (baseSchema) =>
+    baseSchema.extend({
+      role: z.enum(["SUPER_ADMIN", "ADMIN", "MANAGER"]),
+      permissions: z.array(z.string()),
+    }),
   methods: {
     grantPermission(permission) {
       const currentPermissions = [...this.permissions];
@@ -260,47 +263,50 @@ const AdminUser = BaseUser.extend({
       return AdminUser.update(this, { permissions: currentPermissions });
     },
     revokePermission(permission) {
-      const currentPermissions = this.permissions.filter(p => p !== permission);
+      const currentPermissions = this.permissions.filter(
+        (p) => p !== permission,
+      );
       return AdminUser.update(this, { permissions: currentPermissions });
-    }
-  }
+    },
+  },
 });
 
 // Create admin user
 const admin = AdminUser.create({
-  id: 'user-123',
-  username: 'admin',
-  email: 'admin@example.com',
-  role: 'ADMIN',
-  permissions: ['users.view', 'users.edit']
+  id: "user-123",
+  username: "admin",
+  email: "admin@example.com",
+  role: "ADMIN",
+  permissions: ["users.view", "users.edit"],
 });
 
 // Use inherited methods
-const updatedAdmin = admin.updateEmail('admin@company.com');
+const updatedAdmin = admin.updateEmail("admin@company.com");
 
 // Use specialized methods
-const enhancedAdmin = admin.grantPermission('settings.manage');
+const enhancedAdmin = admin.grantPermission("settings.manage");
 ```
 
 You can even change the identity field when extending:
 
 ```javascript
 const ProductByCode = entity({
-  name: 'ProductByCode',
+  name: "ProductByCode",
   schema: z.object({
     code: z.string(),
     name: z.string(),
-    price: z.number()
+    price: z.number(),
   }),
-  identity: 'code' // Using code as identity
+  identity: "code", // Using code as identity
 });
 
 const ProductById = ProductByCode.extend({
-  name: 'ProductById',
-  schema: (baseSchema) => baseSchema.extend({
-    id: z.string().uuid()
-  }),
-  identity: 'id' // Changed to use id as identity
+  name: "ProductById",
+  schema: (baseSchema) =>
+    baseSchema.extend({
+      id: z.string().uuid(),
+    }),
+  identity: "id", // Changed to use id as identity
 });
 ```
 
@@ -313,18 +319,19 @@ Domainify provides schema helpers to make it easier to use value objects in your
 For any value object type:
 
 ```javascript
-import { z } from 'zod';
-import { valueObjectSchema } from 'domainify';
+import { z } from "zod";
+import { valueObjectSchema } from "domainify";
 
 const schema = z.object({
   // Accepts any value object
   genericValueObj: valueObjectSchema(),
-  
+
   // With custom validation and message
-  customValueObj: valueObjectSchema({ 
-    typeName: 'MoneyValue',
-    typeCheck: (val) => typeof val.amount === 'number' && typeof val.currency === 'string'
-  })
+  customValueObj: valueObjectSchema({
+    typeName: "MoneyValue",
+    typeCheck: (val) =>
+      typeof val.amount === "number" && typeof val.currency === "string",
+  }),
 });
 ```
 
@@ -333,15 +340,15 @@ const schema = z.object({
 For specific value object types:
 
 ```javascript
-import { z } from 'zod';
-import { specificValueObjectSchema, Email, Money } from 'domainify';
+import { z } from "zod";
+import { specificValueObjectSchema, Email, Money } from "domainify";
 
 const schema = z.object({
   // Specifically validates Email value objects
   email: specificValueObjectSchema(Email),
-  
+
   // Specifically validates Money value objects
-  price: specificValueObjectSchema(Money)
+  price: specificValueObjectSchema(Money),
 });
 ```
 

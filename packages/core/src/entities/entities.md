@@ -7,6 +7,7 @@ Entities are a fundamental building block in Domain-Driven Design (DDD). This gu
 Entities are objects with identity that persists across state changes. Unlike value objects which are defined entirely by their attributes, entities are defined primarily by their identity.
 
 Key characteristics:
+
 - **Identified by identity** - Entities have a unique identifier that persists throughout their lifecycle
 - **Mutable** - Can be changed while maintaining the same identity
 - **Identity-based equality** - Equal if identity fields are equal, regardless of other attribute values
@@ -20,51 +21,51 @@ Key characteristics:
 The core of domainify's entity implementation is the `entity` factory function:
 
 ```javascript
-import { z } from 'zod';
-import { entity, valueObject } from 'domainify';
+import { z } from "zod";
+import { entity, valueObject } from "domainify";
 
 // A value object to use within the entity
 const Email = valueObject({
-  name: 'Email',
+  name: "Email",
   schema: z.string().email(),
   methods: {
     getDomain() {
-      return this.split('@')[1];
-    }
-  }
+      return this.split("@")[1];
+    },
+  },
 });
 
 const Customer = entity({
-  name: 'Customer',
+  name: "Customer",
   schema: z.object({
     id: z.string().uuid(),
     name: z.string().min(1),
     email: Email.schema,
-    createdAt: z.date()
+    createdAt: z.date(),
   }),
-  identity: 'id',
+  identity: "id",
   historize: true, // Optional history tracking
   methods: {
     updateEmail(email) {
       return this.update({ email });
     },
-    
+
     changeName(name) {
       return this.update({ name });
-    }
-  }
+    },
+  },
 });
 
 // Usage
 const customer = Customer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'John Doe',
-  email: Email.create('john@example.com'),
-  createdAt: new Date()
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  name: "John Doe",
+  email: Email.create("john@example.com"),
+  createdAt: new Date(),
 });
 
 // Updating an entity - modifies the same instance
-customer.updateEmail(Email.create('john.doe@example.com'));
+customer.updateEmail(Email.create("john.doe@example.com"));
 console.log(customer.email); // 'john.doe@example.com'
 ```
 
@@ -74,17 +75,17 @@ Entities are identified by a specific field (specified by the `identity` paramet
 
 ```javascript
 const customer1 = Customer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'John',
-  email: Email.create('john@example.com'),
-  createdAt: new Date()
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  name: "John",
+  email: Email.create("john@example.com"),
+  createdAt: new Date(),
 });
 
 const customer2 = Customer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000', // Same ID
-  name: 'John Doe', // Different name
-  email: Email.create('john.doe@example.com'), // Different email
-  createdAt: new Date()
+  id: "123e4567-e89b-12d3-a456-426614174000", // Same ID
+  name: "John Doe", // Different name
+  email: Email.create("john.doe@example.com"), // Different email
+  createdAt: new Date(),
 });
 
 // Equal because they have the same ID
@@ -98,12 +99,12 @@ Entities are mutable, and you can update them using the `update` method:
 ```javascript
 // Direct update method
 customer.update({
-  name: 'John Doe',
-  email: Email.create('john.doe@example.com')
+  name: "John Doe",
+  email: Email.create("john.doe@example.com"),
 });
 
 // Using a custom update method
-customer.updateEmail(Email.create('new.email@example.com'));
+customer.updateEmail(Email.create("new.email@example.com"));
 ```
 
 The entity is modified in-place, while maintaining its identity.
@@ -113,57 +114,57 @@ The entity is modified in-place, while maintaining its identity.
 Entities can contain value objects as properties:
 
 ```javascript
-import { valueObject, entity } from 'domainify';
+import { valueObject, entity } from "domainify";
 
 // Define a value object
 const Address = valueObject({
-  name: 'Address',
+  name: "Address",
   schema: z.object({
     street: z.string(),
     city: z.string(),
-    zipCode: z.string()
+    zipCode: z.string(),
   }),
   methods: {
     format() {
       return `${this.street}, ${this.city}, ${this.zipCode}`;
-    }
-  }
+    },
+  },
 });
 
 // Use it in an entity
 const Customer = entity({
-  name: 'Customer',
+  name: "Customer",
   schema: z.object({
     id: z.string().uuid(),
     name: z.string(),
-    address: Address.schema
+    address: Address.schema,
   }),
-  identity: 'id',
+  identity: "id",
   methods: {
     moveToAddress(newAddress) {
       return this.update({ address: newAddress });
-    }
-  }
+    },
+  },
 });
 
 // Creating with a value object
 const address = Address.create({
-  street: '123 Main St',
-  city: 'Anytown',
-  zipCode: '12345'
+  street: "123 Main St",
+  city: "Anytown",
+  zipCode: "12345",
 });
 
 const customer = Customer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'John Doe',
-  address
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  name: "John Doe",
+  address,
 });
 
 // Update with a new value object
 const newAddress = Address.create({
-  street: '456 Oak Ave',
-  city: 'Othertown',
-  zipCode: '67890'
+  street: "456 Oak Ave",
+  city: "Othertown",
+  zipCode: "67890",
 });
 
 customer.moveToAddress(newAddress);
@@ -175,28 +176,28 @@ Entities can optionally track the history of changes made to them:
 
 ```javascript
 const HistorizedCustomer = entity({
-  name: 'Customer',
+  name: "Customer",
   schema: z.object({
     id: z.string().uuid(),
     name: z.string(),
-    email: z.string().email()
+    email: z.string().email(),
   }),
-  identity: 'id',
+  identity: "id",
   historize: true, // Enable history tracking
   methods: {
     // ...methods
-  }
+  },
 });
 
 const customer = HistorizedCustomer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'John',
-  email: 'john@example.com'
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  name: "John",
+  email: "john@example.com",
 });
 
 // Make some changes
-customer.update({ name: 'John Doe' });
-customer.update({ email: 'john.doe@example.com' });
+customer.update({ name: "John Doe" });
+customer.update({ email: "john.doe@example.com" });
 
 // Access history
 const history = customer.getHistory();
@@ -230,7 +231,7 @@ Entities are mutable but ensure all changes are validated:
 
 ```javascript
 // Will validate the email format
-customer.update({ email: 'invalid-email' }); // Throws ValidationError
+customer.update({ email: "invalid-email" }); // Throws ValidationError
 ```
 
 ### Identity-Based Equality
@@ -254,10 +255,10 @@ console.log(customer.toString()); // "Customer(id: 123e4567-e89b-12d3-a456-42661
 All entities track their version number:
 
 ```javascript
-const customer = Customer.create({ id: 'abc123', name: 'John' });
+const customer = Customer.create({ id: "abc123", name: "John" });
 console.log(customer.getVersion()); // 1
 
-customer.update({ name: 'John Doe' });
+customer.update({ name: "John Doe" });
 console.log(customer.getVersion()); // 2
 ```
 
@@ -267,26 +268,27 @@ You can extend entities to create more specialized types:
 
 ```javascript
 const RegisteredCustomer = Customer.extend({
-  name: 'RegisteredCustomer',
-  schema: (baseSchema) => baseSchema.extend({
-    registrationDate: z.date(),
-    verified: z.boolean().default(false)
-  }),
+  name: "RegisteredCustomer",
+  schema: (baseSchema) =>
+    baseSchema.extend({
+      registrationDate: z.date(),
+      verified: z.boolean().default(false),
+    }),
   methods: {
     verify() {
       return this.update({
-        verified: true
+        verified: true,
       });
-    }
-  }
+    },
+  },
 });
 
 // Usage
 const registeredCustomer = RegisteredCustomer.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'John Doe',
-  email: 'john@example.com',
-  registrationDate: new Date()
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  name: "John Doe",
+  email: "john@example.com",
+  registrationDate: new Date(),
 });
 
 registeredCustomer.verify();

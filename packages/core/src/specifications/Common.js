@@ -1,5 +1,5 @@
 // packages/core/src/specifications/Common.js
-import { specification } from './Base.js';
+import { specification } from "./Base.js";
 
 /**
  * Creates a specification that checks if an object's property equals a specific value
@@ -11,19 +11,19 @@ import { specification } from './Base.js';
  * @returns {import('./Base.js').Specification<T>} A property equals specification
  */
 export function propertyEquals(propertyName, expectedValue, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Equals ${expectedValue}`,
+  return specification({
+    name: specName || `Property ${propertyName} Equals ${expectedValue}`,
 
-        isSatisfiedBy(obj) {
-            if (obj === null || obj === undefined) return false;
+    isSatisfiedBy(obj) {
+      if (obj === null || obj === undefined) return false;
 
-            return obj && obj[propertyName] === expectedValue;
-        },
+      return obj && obj[propertyName] === expectedValue;
+    },
 
-        toQuery() {
-            return { [propertyName]: expectedValue };
-        }
-    });
+    toQuery() {
+      return { [propertyName]: expectedValue };
+    },
+  });
 }
 
 /**
@@ -36,31 +36,31 @@ export function propertyEquals(propertyName, expectedValue, specName) {
  * @returns {import('./Base.js').Specification<T>} A property contains specification
  */
 export function propertyContains(propertyName, value, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Contains ${value}`,
+  return specification({
+    name: specName || `Property ${propertyName} Contains ${value}`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || !obj[propertyName]) return false;
+    isSatisfiedBy(obj) {
+      if (!obj || !obj[propertyName]) return false;
 
-            const prop = obj[propertyName];
+      const prop = obj[propertyName];
 
-            // Handle arrays
-            if (Array.isArray(prop)) {
-                return prop.includes(value);
-            }
+      // Handle arrays
+      if (Array.isArray(prop)) {
+        return prop.includes(value);
+      }
 
-            // Handle strings
-            if (typeof prop === 'string') {
-                return prop.includes(value);
-            }
+      // Handle strings
+      if (typeof prop === "string") {
+        return prop.includes(value);
+      }
 
-            return false;
-        },
+      return false;
+    },
 
-        toQuery() {
-            return { [propertyName]: { $regex: value, $options: 'i' } };
-        }
-    });
+    toQuery() {
+      return { [propertyName]: { $regex: value, $options: "i" } };
+    },
+  });
 }
 
 /**
@@ -73,29 +73,30 @@ export function propertyContains(propertyName, value, specName) {
  * @returns {import('./Base.js').Specification<T>} A property matches regex specification
  */
 export function propertyMatches(propertyName, pattern, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Matches ${pattern}`,
+  return specification({
+    name: specName || `Property ${propertyName} Matches ${pattern}`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || !obj[propertyName] || typeof obj[propertyName] !== 'string') return false;
+    isSatisfiedBy(obj) {
+      if (!obj || !obj[propertyName] || typeof obj[propertyName] !== "string")
+        return false;
 
-            return pattern.test(obj[propertyName]);
-        },
+      return pattern.test(obj[propertyName]);
+    },
 
-        toQuery() {
-            // Extract the pattern and flags
-            const patternStr = pattern.toString();
-            const patternMatch = patternStr.match(/\/(.*)\/([gimuy]*)$/);
+    toQuery() {
+      // Extract the pattern and flags
+      const patternStr = pattern.toString();
+      const patternMatch = patternStr.match(/\/(.*)\/([gimuy]*)$/);
 
-            if (patternMatch) {
-                const [, regexBody, flags] = patternMatch;
-                return { [propertyName]: { $regex: regexBody, $options: flags } };
-            }
+      if (patternMatch) {
+        const [, regexBody, flags] = patternMatch;
+        return { [propertyName]: { $regex: regexBody, $options: flags } };
+      }
 
-            // Fallback - may not be accurate for all databases
-            return { [propertyName]: { $regex: pattern } };
-        }
-    });
+      // Fallback - may not be accurate for all databases
+      return { [propertyName]: { $regex: pattern } };
+    },
+  });
 }
 
 /**
@@ -108,19 +109,19 @@ export function propertyMatches(propertyName, pattern, specName) {
  * @returns {import('./Base.js').Specification<T>} A property greater than specification
  */
 export function propertyGreaterThan(propertyName, value, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} > ${value}`,
+  return specification({
+    name: specName || `Property ${propertyName} > ${value}`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || obj[propertyName] === undefined) return false;
+    isSatisfiedBy(obj) {
+      if (!obj || obj[propertyName] === undefined) return false;
 
-            return obj[propertyName] > value;
-        },
+      return obj[propertyName] > value;
+    },
 
-        toQuery() {
-            return { [propertyName]: { $gt: value } };
-        }
-    });
+    toQuery() {
+      return { [propertyName]: { $gt: value } };
+    },
+  });
 }
 
 /**
@@ -133,19 +134,19 @@ export function propertyGreaterThan(propertyName, value, specName) {
  * @returns {import('./Base.js').Specification<T>} A property less than specification
  */
 export function propertyLessThan(propertyName, value, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} < ${value}`,
+  return specification({
+    name: specName || `Property ${propertyName} < ${value}`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || obj[propertyName] === undefined) return false;
+    isSatisfiedBy(obj) {
+      if (!obj || obj[propertyName] === undefined) return false;
 
-            return obj[propertyName] < value;
-        },
+      return obj[propertyName] < value;
+    },
 
-        toQuery() {
-            return { [propertyName]: { $lt: value } };
-        }
-    });
+    toQuery() {
+      return { [propertyName]: { $lt: value } };
+    },
+  });
 }
 
 /**
@@ -159,25 +160,25 @@ export function propertyLessThan(propertyName, value, specName) {
  * @returns {import('./Base.js').Specification<T>} A property between specification
  */
 export function propertyBetween(propertyName, min, max, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Between ${min} and ${max}`,
+  return specification({
+    name: specName || `Property ${propertyName} Between ${min} and ${max}`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || obj[propertyName] === undefined) return false;
+    isSatisfiedBy(obj) {
+      if (!obj || obj[propertyName] === undefined) return false;
 
-            const value = obj[propertyName];
-            return value >= min && value <= max;
+      const value = obj[propertyName];
+      return value >= min && value <= max;
+    },
+
+    toQuery() {
+      return {
+        [propertyName]: {
+          $gte: min,
+          $lte: max,
         },
-
-        toQuery() {
-            return {
-                [propertyName]: {
-                    $gte: min,
-                    $lte: max
-                }
-            };
-        }
-    });
+      };
+    },
+  });
 }
 
 /**
@@ -190,19 +191,19 @@ export function propertyBetween(propertyName, min, max, specName) {
  * @returns {import('./Base.js').Specification<T>} A property in specification
  */
 export function propertyIn(propertyName, values, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} In [${values.join(', ')}]`,
+  return specification({
+    name: specName || `Property ${propertyName} In [${values.join(", ")}]`,
 
-        isSatisfiedBy(obj) {
-            if (!obj || obj[propertyName] === undefined) return false;
+    isSatisfiedBy(obj) {
+      if (!obj || obj[propertyName] === undefined) return false;
 
-            return values.includes(obj[propertyName]);
-        },
+      return values.includes(obj[propertyName]);
+    },
 
-        toQuery() {
-            return { [propertyName]: { $in: values } };
-        }
-    });
+    toQuery() {
+      return { [propertyName]: { $in: values } };
+    },
+  });
 }
 
 /**
@@ -214,24 +215,21 @@ export function propertyIn(propertyName, values, specName) {
  * @returns {import('./Base.js').Specification<T>} A property is null specification
  */
 export function propertyIsNull(propertyName, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Is Null`,
+  return specification({
+    name: specName || `Property ${propertyName} Is Null`,
 
-        isSatisfiedBy(obj) {
-            if (!obj) return false;
+    isSatisfiedBy(obj) {
+      if (!obj) return false;
 
-            return obj[propertyName] === null || obj[propertyName] === undefined;
-        },
+      return obj[propertyName] === null || obj[propertyName] === undefined;
+    },
 
-        toQuery() {
-            return {
-                $or: [
-                    { [propertyName]: null },
-                    { [propertyName]: { $exists: false } }
-                ]
-            };
-        }
-    });
+    toQuery() {
+      return {
+        $or: [{ [propertyName]: null }, { [propertyName]: { $exists: false } }],
+      };
+    },
+  });
 }
 
 /**
@@ -243,21 +241,21 @@ export function propertyIsNull(propertyName, specName) {
  * @returns {import('./Base.js').Specification<T>} A property is not null specification
  */
 export function propertyIsNotNull(propertyName, specName) {
-    return specification({
-        name: specName || `Property ${propertyName} Is Not Null`,
+  return specification({
+    name: specName || `Property ${propertyName} Is Not Null`,
 
-        isSatisfiedBy(obj) {
-            if (!obj) return false;
+    isSatisfiedBy(obj) {
+      if (!obj) return false;
 
-            return obj[propertyName] !== null && obj[propertyName] !== undefined;
-        },
+      return obj[propertyName] !== null && obj[propertyName] !== undefined;
+    },
 
-        toQuery() {
-            return {
-                [propertyName]: { $exists: true, $ne: null }
-            };
-        }
-    });
+    toQuery() {
+      return {
+        [propertyName]: { $exists: true, $ne: null },
+      };
+    },
+  });
 }
 
 /**
@@ -268,17 +266,17 @@ export function propertyIsNotNull(propertyName, specName) {
  * @returns {import('./Base.js').Specification<T>} An always true specification
  */
 export function alwaysTrue() {
-    return specification({
-        name: 'Always True',
+  return specification({
+    name: "Always True",
 
-        isSatisfiedBy() {
-            return true;
-        },
+    isSatisfiedBy() {
+      return true;
+    },
 
-        toQuery() {
-            return {};
-        }
-    });
+    toQuery() {
+      return {};
+    },
+  });
 }
 
 /**
@@ -289,17 +287,17 @@ export function alwaysTrue() {
  * @returns {import('./Base.js').Specification<T>} An always false specification
  */
 export function alwaysFalse() {
-    return specification({
-        name: 'Always False',
+  return specification({
+    name: "Always False",
 
-        isSatisfiedBy() {
-            return false;
-        },
+    isSatisfiedBy() {
+      return false;
+    },
 
-        toQuery() {
-            return { $where: "false" };
-        }
-    });
+    toQuery() {
+      return { $where: "false" };
+    },
+  });
 }
 
 /**
@@ -313,27 +311,28 @@ export function alwaysFalse() {
  * @returns {function(P): import('./Base.js').Specification<T>} A function that creates specifications with parameters
  */
 export function parameterizedSpecification(options) {
-    if (!options || !options.name || !options.createPredicate) {
-        throw new Error('Parameterized specification requires name and createPredicate function');
+  if (!options || !options.name || !options.createPredicate) {
+    throw new Error(
+      "Parameterized specification requires name and createPredicate function",
+    );
+  }
+
+  return function (params) {
+    const finalName =
+      typeof options.name === "function" ? options.name(params) : options.name;
+
+    const predicate = options.createPredicate(params);
+
+    const specOptions = {
+      name: finalName,
+      isSatisfiedBy: predicate,
+    };
+
+    // Add toQuery if provided
+    if (options.createQuery) {
+      specOptions.toQuery = options.createQuery(params);
     }
 
-    return function(params) {
-        const finalName = typeof options.name === 'function'
-            ? options.name(params)
-            : options.name;
-
-        const predicate = options.createPredicate(params);
-
-        const specOptions = {
-            name: finalName,
-            isSatisfiedBy: predicate
-        };
-
-        // Add toQuery if provided
-        if (options.createQuery) {
-            specOptions.toQuery = options.createQuery(params);
-        }
-
-        return specification(specOptions);
-    };
+    return specification(specOptions);
+  };
 }

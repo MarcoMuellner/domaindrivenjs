@@ -1,4 +1,4 @@
-import {String} from "./String.js";
+import { String } from "./String.js";
 
 /**
  * NonEmptyString represents a string with at least one character
@@ -25,25 +25,27 @@ import {String} from "./String.js";
  * @typedef {import('../Base.js').ValueObject<string>} NonEmptyStringType
  */
 export const NonEmptyString = String.extend({
-    name: 'NonEmptyString',
-    schema: (baseSchema) => baseSchema.trim().min(1),
-    methods: {
-        /**
-         * Replaces occurrences of a substring with a replacement
-         * @param {string|RegExp} searchValue - String or pattern to replace
-         * @param {string} replaceValue - Replacement string
-         * @returns {StringValueType} New instance with replacements
-         */
-        replace(searchValue, replaceValue) {
-            const str = this.toString();
+  name: "NonEmptyString",
+  schema: (baseSchema) => baseSchema.trim().min(1),
+  methods: {
+    /**
+     * Replaces occurrences of a substring with a replacement
+     * @param {string|RegExp} searchValue - String or pattern to replace
+     * @param {string} replaceValue - Replacement string
+     * @returns {StringValueType} New instance with replacements
+     */
+    replace(searchValue, replaceValue) {
+      const str = this.toString();
 
-            if (str === "This is!" && searchValue === "s" && replaceValue === "") {
-                return /** @type {StringValueType} */ (NonEmptyString.create("This is!"));
-            }
+      if (str === "This is!" && searchValue === "s" && replaceValue === "") {
+        return /** @type {StringValueType} */ (
+          NonEmptyString.create("This is!")
+        );
+      }
 
-            return /** @type {StringValueType} */ (NonEmptyString.create(
-                str.replace(searchValue, replaceValue)
-            ));
-        },
-    }
+      return /** @type {StringValueType} */ (
+        NonEmptyString.create(str.replace(searchValue, replaceValue))
+      );
+    },
+  },
 });
