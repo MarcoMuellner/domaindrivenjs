@@ -1,4 +1,4 @@
-                                                                                                      # Quick Start Guide
+# Quick Start Guide
 
 This guide will help you get up and running with Domainify quickly. We'll build a simple e-commerce domain model with products and orders.
 

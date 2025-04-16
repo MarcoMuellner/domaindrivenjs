@@ -1,277 +1,84 @@
-# Quick Start Guide
+# Introduction to Domain-Driven Design
 
-This guide will help you get up and running with Domainify quickly. We'll build a simple e-commerce domain model with products and orders.
+Domain-Driven Design (DDD) is an approach to software development that focuses on building a deep understanding of the domain or business area that the software supports. This understanding is then used to inform the design and development of the software.
 
-## The TLDR Version
+## Core Principles of DDD
 
-Here's the minimal setup to create a domain model with Domainify:
+### Focus on the Core Domain
 
-```javascript
-import { z } from 'zod';
-import { valueObject, entity, aggregate } from 'domainify';
+The core domain is the part of the business that is most important and where the software can provide the most value. By identifying this, development efforts can be focused on the areas that matter most.
 
-// 1. Create a Money value object
-const Money = valueObject({
-  name: 'Money',
-  schema: z.object({
-    amount: z.number().nonnegative(),
-    currency: z.string().length(3)
-  }),
-  methods: {
-    add(other) {
-      if (this.currency !== other.currency) {
-        throw new Error('Cannot add different currencies');
-      }
-      return Money.create({ 
-        amount: this.amount + other.amount, 
-        currency: this.currency 
-      });
-    }
-  }
-});
+### Model the Domain in Code
 
-// 2. Create a Product entity
-const Product = entity({
-  name: 'Product',
-  schema: z.object({
-    id: z.string().uuid(),
-    name: z.string().min(1),
-    price: Money.schema,
-    stockLevel: z.number().int().nonnegative()
-  }),
-  identity: 'id',
-  methods: {
-    decreaseStock(quantity) {
-      if (quantity > this.stockLevel) {
-        throw new Error('Not enough stock');
-      }
-      return Product.update(this, {
-        stockLevel: this.stockLevel - quantity
-      });
-    }
-  }
-});
+A key principle of DDD is creating a model of the domain in code that both developers and domain experts can understand. This model should use terms and concepts from the business domain (the ubiquitous language) and should be constantly refined as understanding of the domain deepens.
 
-// 3. Create an Order aggregate
-const Order = aggregate({
-  name: 'Order',
-  schema: z.object({
-    id: z.string().uuid(),
-    customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive(),
-      unitPrice: Money.schema
-    })),
-    status: z.enum(['DRAFT', 'PLACED', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED'])
-  }),
-  identity: 'id',
-  invariants: [
-    {
-      name: 'Order must have items when placed',
-      check: order => order.status !== 'PLACED' || order.items.length > 0
-    }
-  ],
-  methods: {
-    addItem(product, quantity) {
-      // Look for existing item with same product
-      const existingItemIndex = this.items.findIndex(
-        item => item.productId === product.id
-      );
-      
-      let newItems;
-      
-      if (existingItemIndex >= 0) {
-        // Update existing item
-        const item = this.items[existingItemIndex];
-        const updatedItem = {
-          ...item,
-          quantity: item.quantity + quantity
-        };
-        
-        newItems = [
-          ...this.items.slice(0, existingItemIndex),
-          updatedItem,
-          ...this.items.slice(existingItemIndex + 1)
-        ];
-      } else {
-        // Add new item
-        const newItem = {
-          productId: product.id,
-          quantity,
-          unitPrice: product.price
-        };
-        
-        newItems = [...this.items, newItem];
-      }
-      
-      return Order.update(this, {
-        items: newItems
-      });
-    },
-    placeOrder() {
-      return Order.update(this, {
-        status: 'PLACED'
-      });
-    }
-  }
-});
+### Collaborate with Domain Experts
 
-// 4. Use the domain model
-const product = Product.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'Premium Widget',
-  price: Money.create({ amount: 29.99, currency: 'USD' }),
-  stockLevel: 100
-});
+Domain experts are people who understand the business domain deeply. In DDD, developers work closely with these experts to build a shared understanding of the domain and to model it accurately in code.
 
-let order = Order.create({
-  id: '123e4567-e89b-12d3-a456-426614174001',
-  customerId: '123e4567-e89b-12d3-a456-426614174002',
-  items: [],
-  status: 'DRAFT'
-});
+### Bounded Contexts
 
-order = order.addItem(product, 2);
-order = order.placeOrder();
-```
+A bounded context is a clear boundary within which a particular domain model applies. This allows different parts of a large system to use different models, acknowledging that a single model might not be appropriate for an entire complex system.
 
-## Step-by-Step Explanation
+### Ubiquitous Language
 
-### 1. Create Value Objects
+The ubiquitous language is a shared language used by both developers and domain experts. It should be used in all parts of the project, from discussions to documentation to the code itself.
 
-Value objects are immutable objects defined by their attributes. They encapsulate related properties and behaviors. In our example, `Money` is a value object that represents a monetary amount in a specific currency.
+## Strategic vs. Tactical DDD
 
-```javascript
-const Money = valueObject({
-  name: 'Money',
-  schema: z.object({
-    amount: z.number().nonnegative(),
-    currency: z.string().length(3)
-  }),
-  methods: {
-    add(other) {
-      if (this.currency !== other.currency) {
-        throw new Error('Cannot add different currencies');
-      }
-      return Money.create({ 
-        amount: this.amount + other.amount, 
-        currency: this.currency 
-      });
-    }
-  }
-});
-```
+Domain-Driven Design can be divided into two main areas:
 
-Key points:
-- Value objects are validated using Zod schemas
-- They are immutable - methods return new instances instead of modifying the existing one
-- They encapsulate business logic related to the concept they represent
+### Strategic Design
 
-### 2. Create Entities
+Strategic design focuses on the big picture:
+- Defining bounded contexts and their relationships
+- Understanding the core domain and subdomains
+- Creating a context map
+- Establishing the ubiquitous language
 
-Entities are objects with identity that can change over time while maintaining that identity.
+Learn more about [Strategic Design](./strategic-design.md)
 
-```javascript
-const Product = entity({
-  name: 'Product',
-  schema: z.object({
-    id: z.string().uuid(),
-    name: z.string().min(1),
-    price: Money.schema,
-    stockLevel: z.number().int().nonnegative()
-  }),
-  identity: 'id',
-  methods: {
-    decreaseStock(quantity) {
-      if (quantity > this.stockLevel) {
-        throw new Error('Not enough stock');
-      }
-      return Product.update(this, {
-        stockLevel: this.stockLevel - quantity
-      });
-    }
-  }
-});
-```
+### Tactical Design
 
-Key points:
-- Entities have a unique identity (specified by the `identity` property)
-- Their attributes can change over time
-- They encapsulate business logic and enforce invariants
-- They use the `update` method to create new instances with changed attributes
+Tactical design focuses on the implementation patterns:
+- Value Objects
+- Entities
+- Aggregates
+- Domain Events
+- Repositories
+- Services
+- Factories
 
-### 3. Create Aggregates
+Learn more about [Tactical Design](./tactical-design.md)
 
-Aggregates are clusters of objects treated as a single unit with a root entity.
+## Why Use DDD?
 
-```javascript
-const Order = aggregate({
-  name: 'Order',
-  schema: z.object({
-    id: z.string().uuid(),
-    customerId: z.string().uuid(),
-    items: z.array(z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive(),
-      unitPrice: Money.schema
-    })),
-    status: z.enum(['DRAFT', 'PLACED', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED'])
-  }),
-  identity: 'id',
-  invariants: [
-    {
-      name: 'Order must have items when placed',
-      check: order => order.status !== 'PLACED' || order.items.length > 0
-    }
-  ],
-  methods: {
-    // Methods implementation...
-  }
-});
-```
+Domain-Driven Design offers several benefits:
 
-Key points:
-- Aggregates enforce invariants (business rules) across the entire cluster
-- They maintain consistency boundaries
-- They have a root entity (in this case, the Order itself)
-- They encapsulate complex business operations
+- **Shared Understanding**: A common language and model between technical and business teams
+- **Focus on Business Value**: Emphasizes what matters most to the business
+- **Manageable Complexity**: Provides patterns to handle complex domains
+- **Flexible and Maintainable**: Creates a model that can evolve with the business
+- **Better Communication**: Improves communication across teams with the ubiquitous language
 
-### 4. Use the Domain Model
+## When to Use DDD
 
-Once you've defined your domain model, you can use it to represent and manipulate your domain:
+DDD is particularly valuable when:
 
-```javascript
-const product = Product.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: 'Premium Widget',
-  price: Money.create({ amount: 29.99, currency: 'USD' }),
-  stockLevel: 100
-});
+- The domain is complex
+- The project is expected to have a long lifespan
+- There's a need for close collaboration between technical and domain experts
+- The business logic is central to the application's success
 
-let order = Order.create({
-  id: '123e4567-e89b-12d3-a456-426614174001',
-  customerId: '123e4567-e89b-12d3-a456-426614174002',
-  items: [],
-  status: 'DRAFT'
-});
+For simpler domains or short-lived projects, a full DDD approach might be overkill.
 
-order = order.addItem(product, 2);
-order = order.placeOrder();
-```
+## DDD with Domainify
 
-Key points:
-- All objects are created using their `create` method
-- State changes happen through methods that return new instances
-- The domain model enforces business rules and invariants
+Domainify provides a set of tools to implement tactical DDD patterns in JavaScript. It focuses on:
 
-## What's Next?
+- Creating a clean, expressive domain model
+- Enforcing invariants and business rules
+- Promoting immutability and type safety
+- Enabling event-driven architecture
 
-Now that you've seen a basic example, explore these topics to learn more:
-
-- [Understanding Value Objects](/guide/core/value-objects.md)
-- [Working with Entities](/guide/core/entities.md)
-- [Aggregates and Business Rules](/guide/core/aggregates.md)
-- [Domain Events and Event Sourcing](/guide/core/domain-events.md)
-
-For a deeper understanding of the DDD concepts, check out our [DDD Fundamentals](/guide/ddd/) section.
+In the following sections, we'll explore these concepts in more detail and show how Domainify helps you implement them.

@@ -1,4 +1,4 @@
-                                                                                                                                                       # Getting Started with Domainify
+# Getting Started with Domainify
 
 Domainify is a JavaScript library that empowers developers to implement Domain-Driven Design (DDD) principles using a modern, composition-based approach. Instead of relying on deep inheritance hierarchies, Domainify leverages functional composition and Zod for schema validation.
 
@@ -15,33 +15,18 @@ Domainify provides the building blocks to implement a domain model that adheres 
 
 ## Installation
 
-::: code-group
+::: code-tabs
+@tab npm
 ```bash [npm]
 npm install domainify
 ```
-
+@tab yarn
 ```bash [yarn]
 yarn add domainify
 ```
-
+@tab pnpm
 ```bash [pnpm]
 pnpm add domainify
-```
-:::
-
-Since Domainify uses Zod for schema validation, you'll also need to install Zod if you haven't already:
-
-::: code-group
-```bash [npm]
-npm install zod
-```
-
-```bash [yarn]
-yarn add zod
-```
-
-```bash [pnpm]
-pnpm add zod
 ```
 :::
 
