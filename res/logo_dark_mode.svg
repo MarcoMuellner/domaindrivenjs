@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 460">
+
+    <!-- Clean circular structure with proper segments and pastel colors -->
+    <g transform="translate(200, 180)">
+        <!-- Background circle with lighter outline for dark mode -->
+        <circle cx="0" cy="0" r="140" fill="#2A2A2A" stroke="#99A1B1" stroke-width="3.5"/>
+
+        <!-- Repositories Layer (Outer) -->
+        <path d="M0,0 L140,0 A140,140 0 0,1 70,121.2 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L70,121.2 A140,140 0 0,1 -70,121.2 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-70,121.2 A140,140 0 0,1 -140,0 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-140,0 A140,140 0 0,1 -70,-121.2 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-70,-121.2 A140,140 0 0,1 70,-121.2 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L70,-121.2 A140,140 0 0,1 140,0 z" fill="#9AA5B8" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Domain Services Layer -->
+        <path d="M0,0 L120,0 A120,120 0 0,1 60,103.9 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L60,103.9 A120,120 0 0,1 -60,103.9 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-60,103.9 A120,120 0 0,1 -120,0 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-120,0 A120,120 0 0,1 -60,-103.9 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-60,-103.9 A120,120 0 0,1 60,-103.9 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L60,-103.9 A120,120 0 0,1 120,0 z" fill="#FFEAAC" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Specifications Layer -->
+        <path d="M0,0 L100,0 A100,100 0 0,1 50,86.6 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L50,86.6 A100,100 0 0,1 -50,86.6 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-50,86.6 A100,100 0 0,1 -100,0 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-100,0 A100,100 0 0,1 -50,-86.6 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-50,-86.6 A100,100 0 0,1 50,-86.6 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L50,-86.6 A100,100 0 0,1 100,0 z" fill="#FFCAA8" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Domain Events Layer -->
+        <path d="M0,0 L80,0 A80,80 0 0,1 40,69.3 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L40,69.3 A80,80 0 0,1 -40,69.3 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-40,69.3 A80,80 0 0,1 -80,0 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-80,0 A80,80 0 0,1 -40,-69.3 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-40,-69.3 A80,80 0 0,1 40,-69.3 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L40,-69.3 A80,80 0 0,1 80,0 z" fill="#E8B5DE" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Aggregates Layer -->
+        <path d="M0,0 L60,0 A60,60 0 0,1 30,52 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L30,52 A60,60 0 0,1 -30,52 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-30,52 A60,60 0 0,1 -60,0 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-60,0 A60,60 0 0,1 -30,-52 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-30,-52 A60,60 0 0,1 30,-52 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L30,-52 A60,60 0 0,1 60,0 z" fill="#C8B6F0" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Entities Layer -->
+        <path d="M0,0 L40,0 A40,40 0 0,1 20,34.6 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L20,34.6 A40,40 0 0,1 -20,34.6 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-20,34.6 A40,40 0 0,1 -40,0 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-40,0 A40,40 0 0,1 -20,-34.6 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L-20,-34.6 A40,40 0 0,1 20,-34.6 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+        <path d="M0,0 L20,-34.6 A40,40 0 0,1 40,0 z" fill="#97E1E9" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Value Objects (center) -->
+        <circle cx="0" cy="0" r="20" fill="#B3F5EA" stroke="#D1D5DB" stroke-width="3.5"/>
+
+        <!-- Radial dividing lines -->
+        <line x1="0" y1="0" x2="140" y2="0" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="70" y2="121.2" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="-70" y2="121.2" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="-140" y2="0" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="-70" y2="-121.2" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="70" y2="-121.2" stroke="#D1D5DB" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- Tech-oriented Wordmark in white for dark mode -->
+    <text x="200" y="370" font-family="'JetBrains Mono', 'Fira Code', monospace" font-weight="700" font-size="42" fill="#FFFFFF" text-anchor="middle">Domainify</text>
+</svg>
