@@ -35,21 +35,24 @@ const Order = entity({
 });
 
 // Business logic separated in a service
-class OrderService {
-  placeOrder(order) {
-    // Logic that should be in the domain model
-    if (order.getItems().length === 0) {
-      throw new Error('Order must have at least one item');
+const OrderService = domainService({
+  name: 'OrderService',
+  methods: {
+    placeOrder(order) {
+      // Logic that should be in the domain model
+      if (order.getItems().length === 0) {
+        throw new Error('Order must have at least one item');
+      }
+      
+      const newOrder = Order.create({
+        ...order,
+        status: 'PLACED'
+      });
+      
+      return newOrder;
     }
-    
-    const newOrder = Order.create({
-      ...order,
-      status: 'PLACED'
-    });
-    
-    return newOrder;
   }
-}
+});
 ```
 
 ### Better Approach
@@ -102,20 +105,22 @@ const Order = aggregate({
 });
 
 // The service now coordinates but doesn't contain domain logic
-class OrderApplicationService {
-  constructor(orderRepository, eventBus) {
-    this.orderRepository = orderRepository;
-    this.eventBus = eventBus;
+const OrderApplicationService = domainService({
+  name: 'OrderApplicationService',
+  dependencies: {
+    orderRepository: 'required',
+    eventBus: 'required'
+  },
+  methods: {
+    async placeOrder(orderId, { orderRepository, eventBus }) {
+      const order = await orderRepository.findById(orderId);
+      const placedOrder = order.place();
+      await orderRepository.save(placedOrder);
+      await eventBus.publishEvents(placedOrder.domainEvents);
+      return placedOrder;
+    }
   }
-  
-  async placeOrder(orderId) {
-    const order = await this.orderRepository.findById(orderId);
-    const placedOrder = order.place();
-    await this.orderRepository.save(placedOrder);
-    await this.eventBus.publishEvents(placedOrder.domainEvents);
-    return placedOrder;
-  }
-}
+});
 ```
 
 ## God Objects
@@ -203,18 +208,20 @@ const Payment = aggregate({
 // And so on for other aggregates...
 
 // Coordinate the workflow in application services
-class OrderFulfillmentService {
-  constructor(orderRepository, paymentRepository, shipmentRepository) {
-    this.orderRepository = orderRepository;
-    this.paymentRepository = paymentRepository;
-    this.shipmentRepository = shipmentRepository;
+const OrderFulfillmentService = domainService({
+  name: 'OrderFulfillmentService',
+  dependencies: {
+    orderRepository: 'required',
+    paymentRepository: 'required',
+    shipmentRepository: 'required'
+  },
+  methods: {
+    async processOrder(orderId, { orderRepository, paymentRepository, shipmentRepository }) {
+      // Coordinate across aggregates for a specific use case
+      // ...
+    }
   }
-  
-  async processOrder(orderId) {
-    // Coordinate across aggregates for a specific use case
-    // ...
-  }
-}
+});
 ```
 
 ## Active Record Misuse
@@ -333,65 +340,67 @@ const Payment = entity({
 });
 
 // Service with all the business logic
-class OrderProcessingService {
-  constructor(orderRepository, paymentRepository, emailService) {
-    this.orderRepository = orderRepository;
-    this.paymentRepository = paymentRepository;
-    this.emailService = emailService;
-  }
-  
-  async processOrder(orderId, paymentDetails) {
-    // Procedural flow with all business logic in the service
-    const order = await this.orderRepository.findById(orderId);
+const OrderProcessingService = domainService({
+  name: 'OrderProcessingService',
+  dependencies: {
+    orderRepository: 'required',
+    paymentRepository: 'required',
+    emailService: 'required'
+  },
+  methods: {
+    async processOrder(orderId, paymentDetails, { orderRepository, paymentRepository, emailService }) {
+      // Procedural flow with all business logic in the service
+      const order = await orderRepository.findById(orderId);
+      
+      // Validation logic that should be in domain model
+      if (order.status !== 'NEW') {
+        throw new Error('Only new orders can be processed');
+      }
+      
+      // Business logic that should be in domain model
+      const paymentAmount = order.items.reduce(
+        (sum, item) => sum + (item.price * item.quantity),
+        0
+      );
+      
+      // Create payment
+      const payment = Payment.create({
+        id: generateId(),
+        orderId: order.id,
+        amount: paymentAmount,
+        method: paymentDetails.method,
+        status: 'PENDING'
+      });
+      
+      // More business logic in service
+      const processedPayment = await this.processPayment(payment, paymentDetails, { orderRepository, paymentRepository, emailService });
+      
+      // Update order status
+      const updatedOrder = Order.create({
+        ...order,
+        status: processedPayment.status === 'COMPLETED' ? 'PAID' : 'PAYMENT_FAILED'
+      });
+      
+      // Save changes
+      await orderRepository.save(updatedOrder);
+      await paymentRepository.save(processedPayment);
+      
+      // Side effect in service
+      await emailService.sendPaymentConfirmation(
+        order.customerEmail,
+        order.id,
+        processedPayment
+      );
+      
+      return { order: updatedOrder, payment: processedPayment };
+    },
     
-    // Validation logic that should be in domain model
-    if (order.status !== 'NEW') {
-      throw new Error('Only new orders can be processed');
+    async processPayment(payment, details, { orderRepository, paymentRepository, emailService }) {
+      // Payment processing logic that should be in domain
+      // ...
     }
-    
-    // Business logic that should be in domain model
-    const paymentAmount = order.items.reduce(
-      (sum, item) => sum + (item.price * item.quantity),
-      0
-    );
-    
-    // Create payment
-    const payment = Payment.create({
-      id: generateId(),
-      orderId: order.id,
-      amount: paymentAmount,
-      method: paymentDetails.method,
-      status: 'PENDING'
-    });
-    
-    // More business logic in service
-    const processedPayment = await this.processPayment(payment, paymentDetails);
-    
-    // Update order status
-    const updatedOrder = Order.create({
-      ...order,
-      status: processedPayment.status === 'COMPLETED' ? 'PAID' : 'PAYMENT_FAILED'
-    });
-    
-    // Save changes
-    await this.orderRepository.save(updatedOrder);
-    await this.paymentRepository.save(processedPayment);
-    
-    // Side effect in service
-    await this.emailService.sendPaymentConfirmation(
-      order.customerEmail,
-      order.id,
-      processedPayment
-    );
-    
-    return { order: updatedOrder, payment: processedPayment };
   }
-  
-  async processPayment(payment, details) {
-    // Payment processing logic that should be in domain
-    // ...
-  }
-}
+});
 ```
 
 ### Better Approach
@@ -475,39 +484,41 @@ const Payment = aggregate({
 });
 
 // Service coordinates across aggregates but doesn't contain domain logic
-class OrderProcessingService {
-  constructor(orderRepository, paymentRepository, paymentGateway) {
-    this.orderRepository = orderRepository;
-    this.paymentRepository = paymentRepository;
-    this.paymentGateway = paymentGateway;
-  }
-  
-  async processOrderPayment(orderId, paymentDetails) {
-    const order = await this.orderRepository.findById(orderId);
-    
-    const payment = Payment.create({
-      id: generateId(),
-      orderId: order.id,
-      amount: order.calculateTotal(),
-      method: paymentDetails.method,
-      status: 'PENDING'
-    });
-    
-    // Process the payment
-    const processedPayment = payment.process(this.paymentGateway);
-    await this.paymentRepository.save(processedPayment);
-    
-    if (processedPayment.status === 'COMPLETED') {
-      const paidOrder = order.markAsPaid(processedPayment.id);
-      await this.orderRepository.save(paidOrder);
+const OrderProcessingService = domainService({
+  name: 'OrderProcessingService',
+  dependencies: {
+    orderRepository: 'required',
+    paymentRepository: 'required',
+    paymentGateway: 'required'
+  },
+  methods: {
+    async processOrderPayment(orderId, paymentDetails, { orderRepository, paymentRepository, paymentGateway }) {
+      const order = await orderRepository.findById(orderId);
       
-      // Return the updated state
-      return { order: paidOrder, payment: processedPayment };
+      const payment = Payment.create({
+        id: generateId(),
+        orderId: order.id,
+        amount: order.calculateTotal(),
+        method: paymentDetails.method,
+        status: 'PENDING'
+      });
+      
+      // Process the payment
+      const processedPayment = payment.process(paymentGateway);
+      await paymentRepository.save(processedPayment);
+      
+      if (processedPayment.status === 'COMPLETED') {
+        const paidOrder = order.markAsPaid(processedPayment.id);
+        await orderRepository.save(paidOrder);
+        
+        // Return the updated state
+        return { order: paidOrder, payment: processedPayment };
+      }
+      
+      return { order, payment: processedPayment };
     }
-    
-    return { order, payment: processedPayment };
   }
-}
+});
 
 // Event handler for side effects
 eventBus.subscribe('PaymentSucceeded', async (event) => {
@@ -602,48 +613,50 @@ app.post('/api/orders/:orderId/process-payment', async (req, res) => {
 // Define domain models with behavior (as shown in previous examples)
 
 // Application service to coordinate the use case
-class PaymentService {
-  constructor(orderRepository, paymentRepository, paymentGateway, eventBus) {
-    this.orderRepository = orderRepository;
-    this.paymentRepository = paymentRepository;
-    this.paymentGateway = paymentGateway;
-    this.eventBus = eventBus;
-  }
-  
-  async processOrderPayment(orderId, paymentDetails) {
-    // Application logic coordinates the domain objects
-    const order = await this.orderRepository.findById(orderId);
-    
-    if (!order) {
-      throw new ApplicationError('Order not found', 404);
+const PaymentService = domainService({
+  name: 'PaymentService',
+  dependencies: {
+    orderRepository: 'required',
+    paymentRepository: 'required',
+    paymentGateway: 'required',
+    eventBus: 'required'
+  },
+  methods: {
+    async processOrderPayment(orderId, paymentDetails, { orderRepository, paymentRepository, paymentGateway, eventBus }) {
+      // Application logic coordinates the domain objects
+      const order = await orderRepository.findById(orderId);
+      
+      if (!order) {
+        throw new ApplicationError('Order not found', 404);
+      }
+      
+      const payment = Payment.create({
+        id: generateId(),
+        orderId: order.id,
+        amount: order.calculateTotal(),
+        method: paymentDetails.method,
+        status: 'PENDING'
+      });
+      
+      const processedPayment = payment.process(paymentGateway);
+      await paymentRepository.save(processedPayment);
+      
+      if (processedPayment.status === 'COMPLETED') {
+        const paidOrder = order.markAsPaid(processedPayment.id);
+        await orderRepository.save(paidOrder);
+        await eventBus.publishEvents([...paidOrder.domainEvents, ...processedPayment.domainEvents]);
+      } else {
+        await eventBus.publishEvents(processedPayment.domainEvents);
+      }
+      
+      return { 
+        success: processedPayment.status === 'COMPLETED',
+        order,
+        payment: processedPayment
+      };
     }
-    
-    const payment = Payment.create({
-      id: generateId(),
-      orderId: order.id,
-      amount: order.calculateTotal(),
-      method: paymentDetails.method,
-      status: 'PENDING'
-    });
-    
-    const processedPayment = payment.process(this.paymentGateway);
-    await this.paymentRepository.save(processedPayment);
-    
-    if (processedPayment.status === 'COMPLETED') {
-      const paidOrder = order.markAsPaid(processedPayment.id);
-      await this.orderRepository.save(paidOrder);
-      await this.eventBus.publishEvents([...paidOrder.domainEvents, ...processedPayment.domainEvents]);
-    } else {
-      await this.eventBus.publishEvents(processedPayment.domainEvents);
-    }
-    
-    return { 
-      success: processedPayment.status === 'COMPLETED',
-      order,
-      payment: processedPayment
-    };
   }
-}
+});
 
 // Thin controller that delegates to application service
 app.post('/api/orders/:orderId/process-payment', async (req, res) => {
@@ -822,60 +835,65 @@ const Order = aggregate({
 });
 
 // Application service coordinates
-class OrderService {
-  constructor(orderRepository, customerRepository) {
-    this.orderRepository = orderRepository;
-    this.customerRepository = customerRepository;
-  }
-  
-  async cancelOrder(orderId, reason) {
-    const order = await this.orderRepository.findById(orderId);
-    if (!order) {
-      throw new ApplicationError('Order not found', 404);
-    }
-    
-    const cancelledOrder = order.cancel(reason);
-    await this.orderRepository.save(cancelledOrder);
-    return cancelledOrder;
-  }
-  
-  // Efficient querying with joins or pagination
-  async getCustomerOrderSummary(customerId, page = 1, pageSize = 10) {
-    const customer = await this.customerRepository.findById(customerId);
-    if (!customer) {
-      throw new ApplicationError('Customer not found', 404);
-    }
-    
-    // Use composition of specifications
-    const specification = OrdersByCustomer({ customerId });
-    
-    // Use proper pagination
-    const options = {
-      sort: { createdAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      limit: pageSize
-    };
-    
-    const orders = await this.orderRepository.findBySpecification(
-      specification, 
-      options
-    );
-    
-    // Use more efficient batch loading or join queries where available
-    return {
-      customer,
-      orders,
-      pagination: {
-        page,
-        pageSize,
-        totalOrders: await this.orderRepository.count(specification.toQuery())
+const OrderService = domainService({
+  name: 'OrderService',
+  dependencies: {
+    orderRepository: 'required',
+    customerRepository: 'required'
+  },
+  methods: {
+    async cancelOrder(orderId, reason, { orderRepository }) {
+      const order = await orderRepository.findById(orderId);
+      if (!order) {
+        throw new ApplicationError('Order not found', 404);
       }
-    };
+      
+      const cancelledOrder = order.cancel(reason);
+      await orderRepository.save(cancelledOrder);
+      return cancelledOrder;
+    },
+    
+    // Efficient querying with joins or pagination
+    async getCustomerOrderSummary(customerId, page = 1, pageSize = 10, { orderRepository, customerRepository }) {
+      const customer = await customerRepository.findById(customerId);
+      if (!customer) {
+        throw new ApplicationError('Customer not found', 404);
+      }
+      
+      // Use composition of specifications
+      const specification = OrdersByCustomer({ customerId });
+      
+      // Use proper pagination
+      const options = {
+        sort: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        limit: pageSize
+      };
+      
+      const orders = await orderRepository.findBySpecification(
+        specification, 
+        options
+      );
+      
+      // Use more efficient batch loading or join queries where available
+      return {
+        customer,
+        orders,
+        pagination: {
+          page,
+          pageSize,
+          totalOrders: await orderRepository.count(specification.toQuery())
+        }
+      };
+    }
   }
-}
+});
 
 // Example usage
-const orderService = new OrderService(orderRepository, customerRepository);
+const orderService = OrderService.create({
+  orderRepository,
+  customerRepository
+});
 
 // Find active customer orders using specifications
 const activeCustomerOrders = await orderRepository.findMany(

@@ -704,20 +704,24 @@ const OrderRepository = loggedRepository({
 
 ### Creating Service Base Classes
 
-Create specialized service base classes:
+Create specialized service base classes using Domainify's domain service pattern:
 
 ```javascript
 import { domainService } from 'domainify';
 
-// Transaction-aware domain service
+// Create a transactional domain service factory
 function transactionalDomainService(config, transactionManager) {
   return domainService({
     ...config,
+    dependencies: {
+      ...(config.dependencies || {}),
+      transactionManager: 'required'
+    },
     methods: {
       ...(config.methods || {}),
       
       // Run operations in a transaction
-      async withTransaction(callback) {
+      async withTransaction(callback, { transactionManager }) {
         return transactionManager.runInTransaction(async (session) => {
           return callback(session);
         });
@@ -729,8 +733,13 @@ function transactionalDomainService(config, transactionManager) {
 // Usage
 const OrderProcessingService = transactionalDomainService({
   name: 'OrderProcessingService',
+  dependencies: {
+    orderRepository: 'required',
+    productRepository: 'required'
+  },
   methods: {
-    async processOrder(order) {
+    async processOrder(order, { orderRepository, productRepository, transactionManager }) {
+      // Use the transaction capability
       return this.withTransaction(async (session) => {
         // Operations running in a transaction
         
@@ -751,15 +760,22 @@ const OrderProcessingService = transactionalDomainService({
         
         // Return the processed order
         return processedOrder;
-      });
+      }, { transactionManager });
     }
   }
-}, transactionManager);
+});
+
+// Create the service with dependencies
+const orderProcessingService = OrderProcessingService.create({
+  orderRepository: orderRepository,
+  productRepository: productRepository,
+  transactionManager: transactionManager
+});
 ```
 
 ### Adding Cross-Cutting Concerns
 
-Add features like validation, logging, and metrics:
+Add features like validation, logging, and metrics to domain services:
 
 ```javascript
 import { domainService } from 'domainify';
@@ -768,21 +784,20 @@ import { domainService } from 'domainify';
 function monitoredDomainService(config, { logger, metrics }) {
   // Get original methods
   const originalMethods = config.methods || {};
+  const enhancedMethods = {};
   
-  // Create wrapped methods with monitoring
-  const wrappedMethods = {};
-  
+  // Create enhanced methods with monitoring
   Object.keys(originalMethods).forEach(methodName => {
     const originalMethod = originalMethods[methodName];
     
     // Skip non-function properties
     if (typeof originalMethod !== 'function') {
-      wrappedMethods[methodName] = originalMethod;
+      enhancedMethods[methodName] = originalMethod;
       return;
     }
     
-    // Wrap method with monitoring
-    wrappedMethods[methodName] = async function(...args) {
+    // Create wrapped method with monitoring
+    enhancedMethods[methodName] = async function(params, dependencies) {
       // Start metrics
       const timer = metrics.startTimer(`${config.name}.${methodName}`);
       
@@ -791,15 +806,13 @@ function monitoredDomainService(config, { logger, metrics }) {
         logger.info({
           service: config.name,
           method: methodName,
-          args: args.map(arg => 
-            typeof arg === 'object' && arg !== null && arg.id 
-              ? { id: arg.id, type: arg.constructor?.name } 
-              : typeof arg
-          )
+          params: typeof params === 'object' && params !== null && params.id 
+            ? { id: params.id, type: params.constructor?.name } 
+            : typeof params
         });
         
         // Call original method
-        const result = await originalMethod.apply(this, args);
+        const result = await originalMethod.call(this, params, dependencies);
         
         // Log success
         logger.info({
@@ -836,10 +849,10 @@ function monitoredDomainService(config, { logger, metrics }) {
     };
   });
   
-  // Return service with wrapped methods
+  // Return enhanced domain service
   return domainService({
     ...config,
-    methods: wrappedMethods
+    methods: enhancedMethods
   });
 }
 
@@ -864,6 +877,7 @@ const logger = {
   error: (data) => console.error('ERROR:', data)
 };
 
+// Define a domain service with monitoring
 const PaymentProcessingService = monitoredDomainService({
   name: 'PaymentProcessingService',
   methods: {
@@ -873,6 +887,95 @@ const PaymentProcessingService = monitoredDomainService({
     }
   }
 }, { logger, metrics });
+
+// Create and use the service
+const paymentProcessor = PaymentProcessingService.create();
+const result = await paymentProcessor.processPayment(payment);
+```
+
+### Creating Domain Service Middleware
+
+Create middleware for domain services to handle cross-cutting concerns:
+
+```javascript
+import { domainService } from 'domainify';
+
+// Domain service middleware factory
+function withMiddleware(serviceFactory, middleware) {
+  return (config) => {
+    // Create enhanced methods with middleware
+    const enhancedMethods = {};
+    
+    // Process each method
+    Object.keys(config.methods || {}).forEach(methodName => {
+      const originalMethod = config.methods[methodName];
+      
+      // Skip non-function properties
+      if (typeof originalMethod !== 'function') {
+        enhancedMethods[methodName] = originalMethod;
+        return;
+      }
+      
+      // Create wrapped method with middleware
+      enhancedMethods[methodName] = async function(params, dependencies) {
+        // Middleware pre-processing
+        const context = { methodName, params };
+        await middleware.before(context, dependencies);
+        
+        try {
+          // Call original method
+          const result = await originalMethod.call(this, params, dependencies);
+          
+          // Middleware post-processing (success)
+          const processed = await middleware.after(result, context, dependencies);
+          return processed;
+        } catch (error) {
+          // Middleware error handling
+          await middleware.onError(error, context, dependencies);
+          throw error;
+        }
+      };
+    });
+    
+    // Create service with enhanced methods
+    return serviceFactory({
+      ...config,
+      methods: enhancedMethods
+    });
+  };
+}
+
+// Example middleware for validation
+const validationMiddleware = {
+  before: async (context, dependencies) => {
+    const { methodName, params } = context;
+    if (methodName === 'processPayment' && !params.amount) {
+      throw new Error('Payment amount is required');
+    }
+  },
+  after: async (result, context, dependencies) => {
+    // Return result unmodified
+    return result;
+  },
+  onError: async (error, context, dependencies) => {
+    // Log validation errors
+    console.error('Validation error:', error.message);
+  }
+};
+
+// Create a domain service factory with middleware
+const domainServiceWithValidation = withMiddleware(domainService, validationMiddleware);
+
+// Use the factory to create a service
+const PaymentService = domainServiceWithValidation({
+  name: 'PaymentService',
+  methods: {
+    async processPayment(payment) {
+      // Payment processing logic
+      return processedPayment;
+    }
+  }
+});
 ```
 
 ## Extending Specifications
@@ -1243,13 +1346,13 @@ const productRepo = ProductRepository.create(
 
 ### Event Publishing Integration
 
-Integrate with event bus systems:
+Integrate with event bus systems using Domainify's domain services:
 
 ```javascript
-import { aggregate } from 'domainify';
+import { aggregate, domainService } from 'domainify';
 
-// Event sourced aggregate with event publishing
-function eventPublishingAggregate(config, eventBus) {
+// Event sourced aggregate
+function eventSourcedAggregate(config) {
   return aggregate({
     ...config,
     
@@ -1278,16 +1381,8 @@ function eventPublishingAggregate(config, eventBus) {
         return [...this._domainEvents];
       },
       
-      // Publish events and clear
-      async publishEvents() {
-        if (this._domainEvents.length === 0) {
-          return this;
-        }
-        
-        // Publish events to the event bus
-        await eventBus.publishEvents(this._domainEvents);
-        
-        // Return a new instance with no events
+      // Clear domain events
+      clearDomainEvents() {
         const AggregateClass = this.constructor;
         return AggregateClass.create({
           ...this,
@@ -1298,31 +1393,57 @@ function eventPublishingAggregate(config, eventBus) {
   });
 }
 
-// Example with Kafka event bus
-class KafkaEventBus {
-  constructor(producer, topicPrefix = 'domain-events') {
-    this.producer = producer;
-    this.topicPrefix = topicPrefix;
+// Event publishing service
+const EventPublisher = domainService({
+  name: 'EventPublisher',
+  dependencies: {
+    eventBus: 'required'
+  },
+  methods: {
+    async publishEvents(aggregate, { eventBus }) {
+      if (!aggregate.domainEvents || aggregate.domainEvents.length === 0) {
+        return aggregate;
+      }
+      
+      // Publish events
+      await eventBus.publishEvents(aggregate.domainEvents);
+      
+      // Return a new instance with events cleared
+      return aggregate.clearDomainEvents();
+    }
   }
-  
-  async publishEvents(events) {
-    const messages = events.map(event => ({
-      topic: `${this.topicPrefix}.${event.type}`,
-      messages: [
-        { 
-          key: event.entityId,
-          value: JSON.stringify(event)
-        }
-      ]
-    }));
-    
-    await this.producer.sendBatch({ topicMessages: messages });
-    
-    return events;
-  }
-}
+});
 
-// Usage
+// Kafka event bus implementation
+const KafkaEventBus = domainService({
+  name: 'KafkaEventBus',
+  dependencies: {
+    producer: 'required'
+  },
+  methods: {
+    async publishEvents(events, { producer, topicPrefix = 'domain-events' }) {
+      if (!events || events.length === 0) {
+        return [];
+      }
+      
+      const messages = events.map(event => ({
+        topic: `${topicPrefix}.${event.type}`,
+        messages: [
+          { 
+            key: event.entityId,
+            value: JSON.stringify(event)
+          }
+        ]
+      }));
+      
+      await producer.sendBatch({ topicMessages: messages });
+      
+      return events;
+    }
+  }
+});
+
+// Example usage
 import { Kafka } from 'kafkajs';
 
 const kafka = new Kafka({
@@ -1333,9 +1454,18 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 await producer.connect();
 
-const eventBus = new KafkaEventBus(producer);
+// Create event bus
+const kafkaEventBus = KafkaEventBus.create({
+  producer
+});
 
-const Order = eventPublishingAggregate({
+// Create publisher
+const eventPublisher = EventPublisher.create({
+  eventBus: kafkaEventBus
+});
+
+// Use with aggregates
+const Order = eventSourcedAggregate({
   name: 'Order',
   schema: orderSchema,
   identity: 'id',
@@ -1345,14 +1475,12 @@ const Order = eventPublishingAggregate({
         throw new Error('Cannot cancel delivered or already cancelled orders');
       }
       
-      const cancelledOrder = Order.create({
+      return Order.create({
         ...this,
         status: 'CANCELLED',
         cancellationReason: reason,
         cancelledAt: new Date()
-      });
-      
-      return cancelledOrder.addDomainEvent({
+      }).addDomainEvent({
         type: 'OrderCancelled',
         payload: {
           orderId: this.id,
@@ -1362,32 +1490,35 @@ const Order = eventPublishingAggregate({
       });
     }
   }
-}, eventBus);
+});
 
 // Application service
-class OrderService {
-  constructor(orderRepository, eventBus) {
-    this.orderRepository = orderRepository;
-    this.eventBus = eventBus;
-  }
-  
-  async cancelOrder(orderId, reason) {
-    const order = await this.orderRepository.findById(orderId);
-    if (!order) {
-      throw new Error('Order not found');
+const OrderService = domainService({
+  name: 'OrderService',
+  dependencies: {
+    orderRepository: 'required',
+    eventPublisher: 'required'
+  },
+  methods: {
+    async cancelOrder(orderId, reason, { orderRepository, eventPublisher }) {
+      const order = await orderRepository.findById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      
+      // Cancel the order
+      const cancelledOrder = order.cancel(reason);
+      
+      // Publish events before saving
+      const finalOrder = await eventPublisher.publishEvents(cancelledOrder);
+      
+      // Save the updated order
+      await orderRepository.save(finalOrder);
+      
+      return finalOrder;
     }
-    
-    const cancelledOrder = order.cancel(reason);
-    
-    // Publish events before saving
-    const finalOrder = await cancelledOrder.publishEvents();
-    
-    // Save the updated order
-    await this.orderRepository.save(finalOrder);
-    
-    return finalOrder;
   }
-}
+});
 ```
 
 ## Best Practices for Extending Domainify
