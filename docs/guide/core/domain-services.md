@@ -78,12 +78,12 @@ A domain service:
 4. Coordinates operations across multiple domain objects
 5. Returns results (often modified domain objects)
 
-## Creating Domain Services with Domainify
+## Creating Domain Services with DomainDrivenJS
 
-Domainify provides a simple way to create domain services:
+DomainDrivenJS provides a simple way to create domain services:
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 // Create a transfer service that moves money between accounts
 const FundsTransferService = domainService({

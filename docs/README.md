@@ -1,14 +1,14 @@
 ---
 home: true
 heroImage: /images/logo.svg
-heroText: Domainify
+heroText: DomainDrivenJS
 tagline: A modern, composition-based approach to Domain-Driven Design in JavaScript
 actions:
   - text: Get Started
     link: /guide/getting-started.html
     type: primary
   - text: View on GitHub
-    link: https://github.com/MarcoMuellner/Domainify
+    link: https://github.com/MarcoMuellner/DomainDrivenJS
     type: secondary
 features:
   - title: Composition Over Inheritance
@@ -38,9 +38,9 @@ With DDD, you'll:
 - Focus development efforts on the **core domain** that provides the most value
 - Establish clear **boundaries** within a complex system
 
-## Why Domainify?
+## Why DomainDrivenJS?
 
-Traditional DDD implementations often rely heavily on class inheritance, which can lead to rigid and complex hierarchies. Domainify takes a different approach:
+Traditional DDD implementations often rely heavily on class inheritance, which can lead to rigid and complex hierarchies. DomainDrivenJS takes a different approach:
 
 ```javascript
 // Create a Money value object using composition
@@ -71,20 +71,20 @@ const total = price.add(tax); // Returns a new Money instance
 
 ## Getting Started
 
-Domainify makes it easy to implement DDD in your JavaScript projects:
+DomainDrivenJS makes it easy to implement DDD in your JavaScript projects:
 
 ::: code-tabs
 @tab npm
 ```bash
-npm install domainify
+npm install domaindrivenjs
 ```
 @tab yarn
 ```bash
-yarn add domainify
+yarn add domaindrivenjs
 ```
 @tab pnpm
 ```bash
-pnpm add domainify
+pnpm add domaindrivenjs
 ```
 :::
 

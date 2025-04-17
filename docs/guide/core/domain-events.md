@@ -85,13 +85,13 @@ Events create a natural audit trail of system activity:
 
 Events can serve as the primary source of truth in your system, with the current state derived from the event history (more on this later).
 
-## Creating Domain Events with Domainify
+## Creating Domain Events with DomainDrivenJS
 
-Domainify makes it easy to create and use domain events:
+DomainDrivenJS makes it easy to create and use domain events:
 
 ```javascript
 import { z } from 'zod';
-import { domainEvent } from 'domainify';
+import { domainEvent } from 'domaindrivenjs';
 
 // Define our event
 const OrderPlaced = domainEvent({
@@ -177,7 +177,7 @@ await orderRepository.save(order.place());
 The event bus distributes events to all interested subscribers:
 
 ```javascript
-import { eventBus } from 'domainify';
+import { eventBus } from 'domaindrivenjs';
 
 // Set up event handling
 eventBus.on(OrderPlaced, async (event) => {
@@ -222,7 +222,7 @@ async function handleOrderPlaced(event) {
 The event bus is central to working with domain events, providing a publish-subscribe mechanism:
 
 ```javascript
-import { eventBus } from 'domainify';
+import { eventBus } from 'domaindrivenjs';
 
 // Subscribe to an event (using event factory)
 eventBus.on(OrderPlaced, async (event) => {
@@ -257,7 +257,7 @@ await eventBus.publishAll([
 You can create custom event bus adapters for different messaging systems:
 
 ```javascript
-import { createEventBus } from 'domainify';
+import { createEventBus } from 'domaindrivenjs';
 
 // Create a custom adapter for RabbitMQ (example)
 const rabbitMQAdapter = {
@@ -296,7 +296,7 @@ eventBus.setAdapter(rabbitMQAdapter);
 
 ## Working with Aggregates and Events
 
-Domainify provides a seamless integration between aggregates and domain events:
+DomainDrivenJS provides a seamless integration between aggregates and domain events:
 
 ### Emitting Events
 
@@ -516,12 +516,12 @@ Event Sourced:
 
 The current state is rebuilt by replaying these events in sequence.
 
-### Implementing Event Sourcing with Domainify
+### Implementing Event Sourcing with DomainDrivenJS
 
-Domainify supports event sourcing with the `EventSourcedAggregate` pattern:
+DomainDrivenJS supports event sourcing with the `EventSourcedAggregate` pattern:
 
 ```javascript
-import { EventSourcedAggregate } from 'domainify';
+import { EventSourcedAggregate } from 'domaindrivenjs';
 
 // Create an event-sourced aggregate
 const EventSourcedOrder = EventSourcedAggregate({

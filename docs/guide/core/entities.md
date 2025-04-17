@@ -48,13 +48,13 @@ const customer2 = Customer.create({
 console.log(customer1.equals(customer2)); // false
 ```
 
-## Creating Entities with Domainify
+## Creating Entities with DomainDrivenJS
 
-Domainify provides a clean, functional approach to creating entities with the `entity` factory function:
+DomainDrivenJS provides a clean, functional approach to creating entities with the `entity` factory function:
 
 ```javascript
 import { z } from 'zod';
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 
 const Product = entity({
   name: 'Product',                     // Name of the entity
@@ -193,7 +193,7 @@ console.log(product1.equals(product3)); // false - different identity
 
 ## Immutability with State Changes
 
-A key feature of Domainify entities is that they are immutable, but can represent state changes by creating new instances:
+A key feature of DomainDrivenJS entities is that they are immutable, but can represent state changes by creating new instances:
 
 ```javascript
 // Entities are immutable
@@ -322,11 +322,11 @@ History tracking can be useful for audit trails, debugging, and understanding th
 
 ## Value Objects Within Entities
 
-Entities often contain value objects for complex attributes. Domainify makes this integration seamless:
+Entities often contain value objects for complex attributes. DomainDrivenJS makes this integration seamless:
 
 ```javascript
 import { z } from 'zod';
-import { entity, valueObject } from 'domainify';
+import { entity, valueObject } from 'domaindrivenjs';
 
 // A value object for addresses
 const Address = valueObject({
@@ -559,7 +559,7 @@ const OrderProcessingService = {
 In practice, entities are typically stored and retrieved using repositories:
 
 ```javascript
-import { repository, createInMemoryAdapter } from 'domainify';
+import { repository, createInMemoryAdapter } from 'domaindrivenjs';
 
 const CustomerRepository = repository({
   aggregate: Customer,
@@ -725,7 +725,7 @@ const Order = entity({
 Use specifications to encapsulate complex filtering logic:
 
 ```javascript
-import { specification } from 'domainify';
+import { specification } from 'domaindrivenjs';
 
 // Define specifications for filtering orders
 const OverdueOrders = specification({

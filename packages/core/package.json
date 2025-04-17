@@ -1,5 +1,5 @@
 {
-  "name": "domainify",
+  "name": "domaindrivenjs",
   "version": "0.1.0",
   "description": "Composition-based Domain-Driven Design toolkit for JavaScript/TypeScript",
   "type": "module",
@@ -48,15 +48,15 @@
     "typescript",
     "javascript"
   ],
-  "author": "Domainify Team",
+  "author": "DomainDrivenJS Team",
   "license": "MIT",
-  "homepage": "https://github.com/yourusername/domainify",
+  "homepage": "https://github.com/yourusername/domaindrivenjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/domainify.git"
+    "url": "git+https://github.com/yourusername/domaindrivenjs.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/domainify/issues"
+    "url": "https://github.com/yourusername/domaindrivenjs/issues"
   },
   "dependencies": {
     "zod": "^3.24.2"

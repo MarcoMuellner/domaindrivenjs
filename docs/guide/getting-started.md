@@ -1,8 +1,8 @@
-# Getting Started with Domainify
+# Getting Started with DomainDrivenJS
 
-Domain-Driven Design (DDD) is a powerful approach to software development, but it can be challenging to implement effectively. Domainify makes DDD more accessible by providing a composition-based toolkit that aligns with JavaScript's strengths.
+Domain-Driven Design (DDD) is a powerful approach to software development, but it can be challenging to implement effectively. DomainDrivenJS makes DDD more accessible by providing a composition-based toolkit that aligns with JavaScript's strengths.
 
-<!-- DIAGRAM: A visual showing the three main challenges of implementing DDD, and how Domainify addresses each one: 1) Complex domain modeling, 2) Maintaining integrity, 3) Evolving the model -->
+<!-- DIAGRAM: A visual showing the three main challenges of implementing DDD, and how DomainDrivenJS addresses each one: 1) Complex domain modeling, 2) Maintaining integrity, 3) Evolving the model -->
 
 ## What is Domain-Driven Design?
 
@@ -48,9 +48,9 @@ DDD might be overkill for:
 - Domains that are well-understood and unlikely to change
 - Projects where technical complexity outweighs domain complexity
 
-## Why Domainify?
+## Why DomainDrivenJS?
 
-Domainify brings DDD to JavaScript with a modern approach:
+DomainDrivenJS brings DDD to JavaScript with a modern approach:
 
 1. **Composition over inheritance** - Using functional factory patterns instead of deep class hierarchies
 2. **Runtime validation with static types** - Leveraging Zod for both validation and TypeScript integration
@@ -58,7 +58,7 @@ Domainify brings DDD to JavaScript with a modern approach:
 4. **Developer experience first** - Providing clear, helpful errors and minimal boilerplate
 5. **Familiar JavaScript patterns** - Working with the language rather than against it
 
-<!-- DIAGRAM: Comparison between traditional class-based DDD implementation (showing complex inheritance tree) vs. Domainify's composition approach (showing factory functions and composition) -->
+<!-- DIAGRAM: Comparison between traditional class-based DDD implementation (showing complex inheritance tree) vs. DomainDrivenJS's composition approach (showing factory functions and composition) -->
 
 ### Comparison with Other Approaches
 
@@ -68,32 +68,32 @@ Domainify brings DDD to JavaScript with a modern approach:
 | **Functional Programming** | Immutability, pure functions | Often requires learning new paradigms, less obvious mapping to domain concepts |
 | **CQRS/Event Sourcing** | Audit trail, temporal queries | Added complexity, eventual consistency challenges |
 | **Anemic Domain Model** | Simplicity, familiar to many developers | Business logic spread across services, harder to enforce invariants |
-| **Domainify** | Combines best practices, natural in JS, type-safe | New library, evolving patterns |
+| **DomainDrivenJS** | Combines best practices, natural in JS, type-safe | New library, evolving patterns |
 
 ## Installation
 
 ::: code-tabs
 @tab npm
 ```bash
-npm install domainify
+npm install domaindrivenjs
 ```
 @tab yarn
 ```bash
-yarn add domainify
+yarn add domaindrivenjs
 ```
 @tab pnpm
 ```bash
-pnpm add domainify
+pnpm add domaindrivenjs
 ```
 :::
 
 ## Basic Concepts
 
-Here's a quick overview of the core building blocks in Domainify:
+Here's a quick overview of the core building blocks in DomainDrivenJS:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject, entity, aggregate } from 'domainify';
+import { valueObject, entity, aggregate } from 'domaindrivenjs';
 
 // 1. Value Objects - immutable objects defined by their attributes
 const Money = valueObject({
@@ -177,11 +177,11 @@ const Order = aggregate({
 
 ## Next Steps
 
-Now that you understand what DDD and Domainify are about:
+Now that you understand what DDD and DomainDrivenJS are about:
 
 1. Check out the [Quick Start guide](/guide/quick-start.html) to build your first domain model
 2. Learn more about [DDD fundamentals](/guide/ddd/) to understand the key concepts
-3. Explore [example applications](/examples/) to see Domainify in action
+3. Explore [example applications](/examples/) to see DomainDrivenJS in action
 
 Or dive straight into core concepts:
 - [Value Objects](/guide/core/value-objects.html)

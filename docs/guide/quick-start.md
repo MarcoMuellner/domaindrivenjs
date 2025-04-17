@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide will walk you through building a simple e-commerce domain model with Domainify. By the end, you'll have a working model with value objects, entities, and aggregates that enforce business rules.
+This guide will walk you through building a simple e-commerce domain model with DomainDrivenJS. By the end, you'll have a working model with value objects, entities, and aggregates that enforce business rules.
 
 ## What We'll Build
 
@@ -13,20 +13,20 @@ We'll create a simplified e-commerce domain with:
 
 ## Setup
 
-First, install Domainify:
+First, install DomainDrivenJS:
 
 ::: code-tabs
 @tab npm
 ```bash
-npm install domainify zod
+npm install domaindrivenjs zod
 ```
 @tab yarn
 ```bash
-yarn add domainify zod
+yarn add domaindrivenjs zod
 ```
 @tab pnpm
 ```bash
-pnpm add domainify zod
+pnpm add domaindrivenjs zod
 ```
 :::
 
@@ -36,7 +36,7 @@ Let's start by creating a `Money` value object to handle monetary values:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 // Money value object representing an amount in a specific currency
 export const Money = valueObject({
@@ -95,7 +95,7 @@ Now, let's create a `Product` entity that has an identity and can change over ti
 
 ```javascript
 import { z } from 'zod';
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 import { Money } from './money';
 
 export const Product = entity({
@@ -166,7 +166,7 @@ Let's create an `Order` aggregate:
 
 ```javascript
 import { z } from 'zod';
-import { aggregate } from 'domainify';
+import { aggregate } from 'domaindrivenjs';
 import { Money } from './money';
 
 export const Order = aggregate({
@@ -329,7 +329,7 @@ try {
 Our `placeOrder` method emits a domain event. To listen for these events:
 
 ```javascript
-import { eventBus } from 'domainify';
+import { eventBus } from 'domaindrivenjs';
 
 // Subscribe to the OrderPlaced event
 eventBus.on('OrderPlaced', async (event) => {
@@ -354,7 +354,7 @@ const placedOrder = order.addItem(keyboard, 2).placeOrder();
 To persist our aggregates, we use repositories:
 
 ```javascript
-import { repository, createInMemoryAdapter } from 'domainify';
+import { repository, createInMemoryAdapter } from 'domaindrivenjs';
 
 // Create a repository for Orders
 const OrderRepository = repository({
@@ -388,7 +388,7 @@ import {
   repository, 
   eventBus,
   createInMemoryAdapter 
-} from 'domainify';
+} from 'domaindrivenjs';
 
 // Define our domain model
 const Money = valueObject({

@@ -1,6 +1,6 @@
-# Working with Entities in domainify
+# Working with Entities in domaindrivenjs
 
-Entities are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use entities effectively in your domain model with domainify.
+Entities are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use entities effectively in your domain model with domaindrivenjs.
 
 ## What are Entities?
 
@@ -18,11 +18,11 @@ Key characteristics:
 
 ## Creating Entities
 
-The core of domainify's entity implementation is the `entity` factory function:
+The core of domaindrivenjs's entity implementation is the `entity` factory function:
 
 ```javascript
 import { z } from "zod";
-import { entity, valueObject } from "domainify";
+import { entity, valueObject } from "domaindrivenjs";
 
 // A value object to use within the entity
 const Email = valueObject({
@@ -114,7 +114,7 @@ The entity is modified in-place, while maintaining its identity.
 Entities can contain value objects as properties:
 
 ```javascript
-import { valueObject, entity } from "domainify";
+import { valueObject, entity } from "domaindrivenjs";
 
 // Define a value object
 const Address = valueObject({
@@ -223,7 +223,7 @@ console.log(customer.getVersion()); // 3
 
 ## Built-in Behaviors
 
-All entities created with domainify have these built-in behaviors:
+All entities created with domaindrivenjs have these built-in behaviors:
 
 ### Mutability with Validation
 

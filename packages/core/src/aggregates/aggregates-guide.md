@@ -1,6 +1,6 @@
-# Working with Aggregates in domainify
+# Working with Aggregates in domaindrivenjs
 
-Aggregates are a core building block in Domain-Driven Design (DDD). This guide explains how to create and use aggregates effectively in your domain model with domainify.
+Aggregates are a core building block in Domain-Driven Design (DDD). This guide explains how to create and use aggregates effectively in your domain model with domaindrivenjs.
 
 ## What are Aggregates?
 
@@ -16,11 +16,11 @@ Aggregates define transactional boundaries and are the primary mechanism for enf
 
 ## Creating Aggregates
 
-The core of domainify's aggregate implementation is the `aggregate` factory function:
+The core of domaindrivenjs's aggregate implementation is the `aggregate` factory function:
 
 ```javascript
 import { z } from "zod";
-import { aggregate } from "domainify";
+import { aggregate } from "domaindrivenjs";
 
 // Define an Order aggregate
 const Order = aggregate({
@@ -259,7 +259,7 @@ import {
   NonEmptyString,
   PositiveNumber,
   specificValueObjectSchema,
-} from "domainify";
+} from "domaindrivenjs";
 
 const Product = aggregate({
   name: "Product",

@@ -48,13 +48,13 @@ When a repository retrieves an object:
 2. It maps the raw data back into domain objects
 3. It returns fully reconstituted domain objects
 
-## Creating Repositories with Domainify
+## Creating Repositories with DomainDrivenJS
 
-Domainify provides a straightforward way to create repositories:
+DomainDrivenJS provides a straightforward way to create repositories:
 
 ```javascript
 import { z } from 'zod';
-import { entity, repository } from 'domainify';
+import { entity, repository } from 'domaindrivenjs';
 
 // First, let's define a simple Product entity
 const Product = entity({
@@ -97,10 +97,10 @@ Let's break down the components:
 
 ## Repository Adapters
 
-A key strength of the repository pattern is its abstraction of storage details through adapters. Domainify provides adapters for different storage systems:
+A key strength of the repository pattern is its abstraction of storage details through adapters. DomainDrivenJS provides adapters for different storage systems:
 
 ```javascript
-import { InMemoryAdapter, MongoAdapter, SqliteAdapter } from 'domainify/adapters';
+import { InMemoryAdapter, MongoAdapter, SqliteAdapter } from 'domaindrivenjs/adapters';
 
 // In-memory adapter (great for testing)
 const inMemoryProductRepo = ProductRepository.create(
@@ -158,7 +158,7 @@ await productRepo.delete('123e4567-e89b-12d3-a456-426614174000');
 
 ## Standard Repository Methods
 
-All Domainify repositories come with these standard methods:
+All DomainDrivenJS repositories come with these standard methods:
 
 | Method | Description |
 |--------|-------------|
@@ -173,7 +173,7 @@ All Domainify repositories come with these standard methods:
 
 ## Query Criteria
 
-Domainify repositories support a flexible query criteria syntax:
+DomainDrivenJS repositories support a flexible query criteria syntax:
 
 ```javascript
 // Basic equality
@@ -317,7 +317,7 @@ const OrderService = {
 In-memory adapters make testing with repositories simple:
 
 ```javascript
-import { InMemoryAdapter } from 'domainify/adapters';
+import { InMemoryAdapter } from 'domaindrivenjs/adapters';
 
 describe('ProductService', () => {
   let productRepo;

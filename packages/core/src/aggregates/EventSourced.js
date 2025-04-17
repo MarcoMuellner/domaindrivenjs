@@ -1,5 +1,4 @@
 // packages/core/src/aggregates/EventSourced.js
-import { eventBus } from "../events/EventBus.js";
 
 /**
  * @typedef {Object} AggregateWithEvents
@@ -55,7 +54,7 @@ export function withEvents(aggregate) {
       // Event factory
       try {
         event = eventTypeOrFactory.create(eventData);
-      } catch (error) {
+      } catch {
         throw new Error("Invalid event type or factory");
       }
     } else {

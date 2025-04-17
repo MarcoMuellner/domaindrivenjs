@@ -70,13 +70,13 @@ Value objects are everywhere in the real world:
 - **Addresses** - Same street, city, and postal code is the same address
 - **Time Periods** - A 2-hour duration is the same regardless of when it occurs
 
-## Creating Value Objects with Domainify
+## Creating Value Objects with DomainDrivenJS
 
-Domainify makes it easy to create value objects with the `valueObject` factory function:
+DomainDrivenJS makes it easy to create value objects with the `valueObject` factory function:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const Money = valueObject({
   name: 'Money',                    // Name of the value object
@@ -150,7 +150,7 @@ console.log(price.format()); // Original is unchanged: "$29.99"
 
 ## Built-in Value Object Types
 
-Domainify provides several built-in value object types for common use cases:
+DomainDrivenJS provides several built-in value object types for common use cases:
 
 ### String Value Objects
 
@@ -158,7 +158,7 @@ Domainify provides several built-in value object types for common use cases:
 import {
   String,
   NonEmptyString
-} from 'domainify';
+} from 'domaindrivenjs';
 
 // Basic string
 const description = String.create("Product description");
@@ -187,7 +187,7 @@ import {
   IntegerNumber,
   PositiveNumber,
   NonNegativeNumber
-} from 'domainify';
+} from 'domaindrivenjs';
 
 // Basic number
 const genericNumber = Number.create(42);
@@ -213,7 +213,7 @@ const formatted = price.format('en-US', {
 ### Identifier Value Objects
 
 ```javascript
-import { Identifier } from 'domainify';
+import { Identifier } from 'domaindrivenjs';
 
 // Basic identifier
 const id = Identifier.create("user-123");
@@ -241,7 +241,7 @@ For simple concepts that wrap a single value:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const Email = valueObject({
   name: 'Email',
@@ -275,7 +275,7 @@ For concepts that combine multiple values:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const DateRange = valueObject({
   name: 'DateRange',
@@ -332,7 +332,7 @@ console.log(bookingRange.overlaps(otherRange)); // true
 You can extend existing value objects to create more specialized versions:
 
 ```javascript
-import { NonEmptyString } from 'domainify';
+import { NonEmptyString } from 'domaindrivenjs';
 
 // Extend NonEmptyString to create a specialized value object
 const ProductName = NonEmptyString.extend({
@@ -368,7 +368,7 @@ Complex domain concepts can be composed of other value objects:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject, Email, NonEmptyString } from 'domainify';
+import { valueObject, Email, NonEmptyString } from 'domaindrivenjs';
 
 // First, define component value objects
 const PhoneNumber = valueObject({
@@ -436,7 +436,7 @@ Value objects can encapsulate business rules and constraints:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const PasswordStrength = valueObject({
   name: 'PasswordStrength',
@@ -499,7 +499,7 @@ Value objects work together with entities and other DDD building blocks in your 
 
 ```javascript
 import { z } from 'zod';
-import { valueObject, entity } from 'domainify';
+import { valueObject, entity } from 'domaindrivenjs';
 
 // Value objects
 const Email = valueObject({
@@ -566,7 +566,7 @@ Collections themselves can be value objects:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const TagList = valueObject({
   name: 'TagList',
@@ -613,7 +613,7 @@ Range concepts like periods, intervals, or spans:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const NumberRange = valueObject({
   name: 'NumberRange',
@@ -657,11 +657,11 @@ console.log(expandedRange.max); // 25
 
 ## Value Object Validation with Zod
 
-Domainify uses Zod for validation, giving you a powerful way to define constraints:
+DomainDrivenJS uses Zod for validation, giving you a powerful way to define constraints:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const PostalCode = valueObject({
   name: 'PostalCode',
@@ -707,7 +707,7 @@ Sometimes you need special ways to create value objects:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const IPAddress = valueObject({
   name: 'IPAddress',
@@ -745,7 +745,7 @@ For persisting value objects:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const Color = valueObject({
   name: 'Color',
@@ -805,7 +805,7 @@ const reconstructed = Color.fromHex(parsed.primaryColor);
 Create default "null" values with defined behavior:
 
 ```javascript
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const Discount = valueObject({
   name: 'Discount',
@@ -976,7 +976,7 @@ Value objects are a powerful tool for modeling your domain concepts with precisi
 3. **Eliminate entire categories of bugs** through immutability
 4. **Improve code readability** by expressing domain concepts directly
 
-With Domainify's composable, immutable value objects, you can build rich domain models that express complex business rules clearly and concisely.
+With DomainDrivenJS's composable, immutable value objects, you can build rich domain models that express complex business rules clearly and concisely.
 
 ## Next Steps
 

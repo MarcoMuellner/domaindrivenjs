@@ -53,11 +53,11 @@ Value objects are immutable objects defined by their attributes, not by an ident
 - Email addresses
 - Colors (RGB values)
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 const Money = valueObject({
   name: 'Money',
@@ -128,11 +128,11 @@ Entities are objects with identity that persists as they change state over time.
 - Financial accounts
 - Vehicles
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
 import { z } from 'zod';
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 
 const Customer = entity({
   name: 'Customer',
@@ -205,11 +205,11 @@ Aggregates are clusters of entities and value objects treated as a single unit f
 - Product (root) with Variants and Attributes
 - Invoice (root) with LineItems and Payments
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
 import { z } from 'zod';
-import { aggregate } from 'domainify';
+import { aggregate } from 'domaindrivenjs';
 
 const Order = aggregate({
   name: 'Order',
@@ -341,11 +341,11 @@ Domain events represent significant occurrences in the domain that other parts o
 - PasswordChanged
 - InventoryReduced
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
 import { z } from 'zod';
-import { domainEvent, eventBus } from 'domainify';
+import { domainEvent, eventBus } from 'domaindrivenjs';
 
 // Define an event type
 const OrderPlaced = domainEvent({
@@ -402,10 +402,10 @@ Repositories provide a collection-like interface for accessing and persisting ag
 - **Encapsulates query logic** - Hides data access implementation details
 - **Returns fully hydrated aggregates** - Loads complete aggregates, not partial objects
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
-import { repository, createInMemoryAdapter } from 'domainify';
+import { repository, createInMemoryAdapter } from 'domaindrivenjs';
 
 // Create a repository for the Order aggregate
 const OrderRepository = repository({
@@ -471,10 +471,10 @@ Domain services encapsulate operations that don't naturally belong to a specific
 - TaxCalculator (determines tax across line items)
 - ReservationManager (allocates limited resources)
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 const PaymentService = domainService({
   name: 'PaymentService',
@@ -571,7 +571,7 @@ Factories encapsulate complex object creation logic, especially for creating agg
 - **Express intent** - Named methods explain what's being created
 - **Hide implementation details** - Abstract construction complexity
 
-### Implementation with Domainify
+### Implementation with DomainDrivenJS
 
 ```javascript
 import { z } from 'zod';
@@ -644,13 +644,13 @@ These tactical patterns don't exist in isolation. Here's how they typically inte
 5. **Domain Services** coordinate operations across multiple Aggregates
 6. **Domain Events** communicate changes between Aggregates
 
-## Implementation Patterns with Domainify
+## Implementation Patterns with DomainDrivenJS
 
-Domainify provides specific implementation patterns for effectively using tactical DDD in JavaScript.
+DomainDrivenJS provides specific implementation patterns for effectively using tactical DDD in JavaScript.
 
 ### Immutability
 
-Domainify enforces immutability, requiring a functional style of programming:
+DomainDrivenJS enforces immutability, requiring a functional style of programming:
 
 ```javascript
 // Entities and aggregates are immutable
@@ -666,7 +666,7 @@ console.log(customer.email); // Still the old email
 
 ### Composition Over Inheritance
 
-Domainify uses a composition-based approach rather than traditional class inheritance:
+DomainDrivenJS uses a composition-based approach rather than traditional class inheritance:
 
 ```javascript
 // Create a basic value object
@@ -694,7 +694,7 @@ const Email = String.extend({
 
 ### Validation with Zod
 
-Domainify uses Zod for validation and type enforcement:
+DomainDrivenJS uses Zod for validation and type enforcement:
 
 ```javascript
 // Define validation rules with Zod
@@ -722,7 +722,7 @@ try {
 
 ### Domain Events Integration
 
-Domainify integrates domain events with aggregates and repositories:
+DomainDrivenJS integrates domain events with aggregates and repositories:
 
 ```javascript
 // Define an event
@@ -895,7 +895,7 @@ If you're new to tactical DDD, follow these steps:
 
 ## Summary and Next Steps
 
-Tactical design gives you a rich toolkit for implementing domain models that express business concepts directly in code. Domainify simplifies this with composition-based patterns, immutability, validation, and event support.
+Tactical design gives you a rich toolkit for implementing domain models that express business concepts directly in code. DomainDrivenJS simplifies this with composition-based patterns, immutability, validation, and event support.
 
 To learn more about specific building blocks in depth, check out these guides:
 - [Value Objects](../core/value-objects.md)
@@ -906,4 +906,4 @@ To learn more about specific building blocks in depth, check out these guides:
 - [Specifications](../core/specifications.md)
 - [Domain Services](../core/domain-services.md)
 
-Ready to start implementing with Domainify? Check out our [Quick Start Guide](../quick-start.md) for a complete example.
+Ready to start implementing with DomainDrivenJS? Check out our [Quick Start Guide](../quick-start.md) for a complete example.

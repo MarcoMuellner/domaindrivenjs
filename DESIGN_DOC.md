@@ -1,4 +1,4 @@
-# domainify: A Composition-Based Domain-Driven Design Library
+# domaindrivenjs: A Composition-Based Domain-Driven Design Library
 
 ## Design Document
 
@@ -9,7 +9,7 @@
 
 ## 1. Vision
 
-domainify is a javascript library that empowers developers to implement Domain-Driven Design principles using a modern, composition-based approach. Rather than relying on inheritance hierarchies and javascript interfaces, domainify leverages Zod for schema validation and type inference, providing both runtime validation and compile-time type safety.
+domaindrivenjs is a javascript library that empowers developers to implement Domain-Driven Design principles using a modern, composition-based approach. Rather than relying on inheritance hierarchies and javascript interfaces, domaindrivenjs leverages Zod for schema validation and type inference, providing both runtime validation and compile-time type safety.
 
 ### Core Principles
 
@@ -25,13 +25,13 @@ domainify is a javascript library that empowers developers to implement Domain-D
 
 ## 2. Architecture Overview
 
-domainify is built as a modular collection of core domain building blocks with a clean separation of concerns. Each module focuses on a specific DDD concept while maintaining a consistent API pattern.
+domaindrivenjs is built as a modular collection of core domain building blocks with a clean separation of concerns. Each module focuses on a specific DDD concept while maintaining a consistent API pattern.
 
 ### High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        domainify Core                     │
+│                        domaindrivenjs Core                     │
 ├─────────┬─────────┬─────────┬─────────┬─────────┬──────────┤
 │  Value  │ Entity  │Aggregate│ Domain  │ Specifi-│  Bounded │
 │ Objects │         │         │ Events  │ cations │ Contexts │
@@ -56,12 +56,12 @@ domainify is built as a modular collection of core domain building blocks with a
 
 The library will be organized as a monorepo with a core package and separate adapter packages:
 
-- `@domainify/core`: Core DDD building blocks
-- `@domainify/mongodb`: MongoDB repository adapter
-- `@domainify/prisma`: Prisma repository adapter
-- `@domainify/redis`: Redis repository adapter
-- `@domainify/eventstore`: Event sourcing implementation
-- `@domainify/testing`: Testing utilities
+- `@domaindrivenjs/core`: Core DDD building blocks
+- `@domaindrivenjs/mongodb`: MongoDB repository adapter
+- `@domaindrivenjs/prisma`: Prisma repository adapter
+- `@domaindrivenjs/redis`: Redis repository adapter
+- `@domaindrivenjs/eventstore`: Event sourcing implementation
+- `@domaindrivenjs/testing`: Testing utilities
 
 ---
 
@@ -73,7 +73,7 @@ Value objects are immutable objects defined by their attributes rather than iden
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from '@domainify/core';
+import { valueObject } from '@domaindrivenjs/core';
 
 const MoneySchema = z.object({
   amount: z.number().nonnegative(),
@@ -124,7 +124,7 @@ Entities are objects with identity that persists across state changes.
 
 ```javascript
 import { z } from 'zod';
-import { entity } from '@domainify/core';
+import { entity } from '@domaindrivenjs/core';
 
 const CustomerSchema = z.object({
   id: z.string().uuid(),
@@ -173,7 +173,7 @@ Aggregates are clusters of objects treated as a single unit with a root entity.
 
 ```javascript
 import { z } from 'zod';
-import { aggregate } from '@domainify/core';
+import { aggregate } from '@domaindrivenjs/core';
 
 const OrderItemSchema = z.object({
   productId: z.string().uuid(),
@@ -307,7 +307,7 @@ Domain events represent meaningful occurrences within the domain.
 
 ```javascript
 import { z } from 'zod';
-import { domainEvent, eventBus } from '@domainify/core';
+import { domainEvent, eventBus } from '@domaindrivenjs/core';
 
 const OrderPlacedSchema = z.object({
   orderId: z.string().uuid(),
@@ -345,7 +345,7 @@ await orderRepository.save(placedOrder); // Publishes events automatically
 Specifications encapsulate business rules that can be combined and reused.
 
 ```javascript
-import { specification } from '@domainify/core';
+import { specification } from '@domaindrivenjs/core';
 
 const PremiumProduct = specification({
   name: 'PremiumProduct',
@@ -383,8 +383,8 @@ const premiumInStockProducts = await productRepository.findAll(
 Repositories provide a collection-like interface for accessing and persisting aggregates.
 
 ```javascript
-import { repository } from '@domainify/core';
-import { createMongoAdapter } from '@domainify/mongodb';
+import { repository } from '@domaindrivenjs/core';
+import { createMongoAdapter } from '@domaindrivenjs/mongodb';
 
 const OrderRepository = repository({
   aggregate: Order,
@@ -429,7 +429,7 @@ await OrderRepository.save(updatedOrder);
 Bounded contexts establish explicit boundaries between different domain models.
 
 ```javascript
-import { boundedContext } from '@domainify/core';
+import { boundedContext } from '@domaindrivenjs/core';
 
 const SalesContext = boundedContext({
   name: 'Sales',
@@ -474,7 +474,7 @@ Use cases encapsulate application-specific operations and orchestration.
 
 ```javascript
 import { z } from 'zod';
-import { useCase } from '@domainify/core';
+import { useCase } from '@domaindrivenjs/core';
 
 const PlaceOrderSchema = z.object({
   customerId: z.string().uuid(),
@@ -567,7 +567,7 @@ For more complex applications, separate command and query handlers provide a CQR
 
 ```javascript
 import { z } from 'zod';
-import { command, query } from '@domainify/core';
+import { command, query } from '@domaindrivenjs/core';
 
 // Command
 const PlaceOrderCommand = command({
@@ -630,7 +630,7 @@ const orderDetails = await queryBus.dispatch('GetOrderDetails', {
 Repository adapters provide the infrastructure implementation for repositories.
 
 ```javascript
-import { createRepositoryAdapter } from '@domainify/core';
+import { createRepositoryAdapter } from '@domaindrivenjs/core';
 
 // Generic adapter interface
 export interface RepositoryAdapter<T> {
@@ -660,21 +660,21 @@ export function createMongoAdapter<T>(options: MongoAdapterOptions<T>): Reposito
 ```
 
 **Available Adapters:**
-- `@domainify/mongodb`: MongoDB repository adapter
-- `@domainify/prisma`: Prisma ORM repository adapter
-- `@domainify/redis`: Redis repository adapter
-- `@domainify/memory`: In-memory repository adapter for testing
+- `@domaindrivenjs/mongodb`: MongoDB repository adapter
+- `@domaindrivenjs/prisma`: Prisma ORM repository adapter
+- `@domaindrivenjs/redis`: Redis repository adapter
+- `@domaindrivenjs/memory`: In-memory repository adapter for testing
 
 ### 5.2 Event Bus Implementations
 
 ```javascript
-import { createEventBus } from '@domainify/core';
+import { createEventBus } from '@domaindrivenjs/core';
 
 // In-memory event bus (default)
 const inMemoryBus = createEventBus();
 
 // Redis event bus
-import { createRedisEventBus } from '@domainify/redis';
+import { createRedisEventBus } from '@domaindrivenjs/redis';
 const redisBus = createRedisEventBus({
   url: process.env.REDIS_URL
 });
@@ -693,7 +693,7 @@ const customBus = createEventBus({
 ### 5.3 Unit of Work Pattern
 
 ```javascript
-import { createUnitOfWork } from '@domainify/core';
+import { createUnitOfWork } from '@domaindrivenjs/core';
 
 const unitOfWork = createUnitOfWork({
   repositories: {
@@ -726,7 +726,7 @@ try {
 
 ### 6.1 Error Handling
 
-domainify provides rich error types that include context about the validation or business rule failure.
+domaindrivenjs provides rich error types that include context about the validation or business rule failure.
 
 ```javascript
 try {
@@ -745,7 +745,7 @@ try {
 ### 6.2 Debugging Tools
 
 ```javascript
-import { enableDebugging } from '@domainify/core';
+import { enableDebugging } from '@domaindrivenjs/core';
 
 // Enable detailed debugging
 enableDebugging({
@@ -763,7 +763,7 @@ import {
   mockRepository, 
   mockEventBus,
   createTestAggregate 
-} from '@domainify/testing';
+} from '@domaindrivenjs/testing';
 
 // Mock repository with predefined data
 const orderRepo = mockRepository(Order, [
@@ -781,12 +781,12 @@ expect(eventBus.published).toContainEvent(OrderPlaced);
 
 ## 7. Extension Points
 
-domainify is designed to be extensible at multiple levels:
+domaindrivenjs is designed to be extensible at multiple levels:
 
 ### 7.1 Custom Repository Adapters
 
 ```javascript
-import { createRepositoryAdapter } from '@domainify/core';
+import { createRepositoryAdapter } from '@domaindrivenjs/core';
 
 const myAdapter = createRepositoryAdapter<Order>({
   findById: async (id) => {
@@ -812,7 +812,7 @@ const OrderRepository = repository({
 ### 7.2 Custom Event Bus
 
 ```javascript
-import { createEventBus } from '@domainify/core';
+import { createEventBus } from '@domaindrivenjs/core';
 
 const kafkaEventBus = createEventBus({
   publish: async (events) => {
@@ -904,7 +904,7 @@ import {
   repository,
   specification,
   boundedContext
-} from '@domainify/core';
+} from '@domaindrivenjs/core';
 
 // Application layer
 import {
@@ -913,37 +913,37 @@ import {
   query,
   policy,
   saga
-} from '@domainify/core';
+} from '@domaindrivenjs/core';
 
 // Infrastructure
 import {
   createEventBus,
   createUnitOfWork,
   createRepositoryAdapter
-} from '@domainify/core';
+} from '@domaindrivenjs/core';
 ```
 
 ### 8.2 Adapter Packages
 
 ```javascript
 // MongoDB adapter
-import { createMongoAdapter } from '@domainify/mongodb';
+import { createMongoAdapter } from '@domaindrivenjs/mongodb';
 
 // Prisma adapter
-import { createPrismaAdapter } from '@domainify/prisma';
+import { createPrismaAdapter } from '@domaindrivenjs/prisma';
 
 // Redis adapter
 import { 
   createRedisAdapter, 
   createRedisEventBus 
-} from '@domainify/redis';
+} from '@domaindrivenjs/redis';
 
 // Testing utilities
 import { 
   mockRepository, 
   mockEventBus,
   createTestAggregate 
-} from '@domainify/testing';
+} from '@domaindrivenjs/testing';
 ```
 
 ---
@@ -959,8 +959,8 @@ import {
   domainEvent, 
   repository, 
   useCase 
-} from '@domainify/core';
-import { createMongoAdapter } from '@domainify/mongodb';
+} from '@domaindrivenjs/core';
+import { createMongoAdapter } from '@domaindrivenjs/mongodb';
 
 // Value Objects
 const Money = valueObject({
@@ -1169,10 +1169,10 @@ async function handlePlaceOrderRequest(req, res) {
 
 ## 11. Conclusion
 
-domainify offers a modern, composable approach to implementing Domain-Driven Design in javascript applications. By leveraging Zod for schema validation and focusing on functional composition rather than inheritance, it provides a flexible foundation for building complex domain models.
+domaindrivenjs offers a modern, composable approach to implementing Domain-Driven Design in javascript applications. By leveraging Zod for schema validation and focusing on functional composition rather than inheritance, it provides a flexible foundation for building complex domain models.
 
 The library prioritizes developer experience with clear APIs, comprehensive error handling, and extensive documentation, making it accessible for teams of all experience levels.
 
-With its modular architecture and well-defined extension points, domainify can adapt to the specific needs of your domain while providing enough structure to enforce DDD best practices.
+With its modular architecture and well-defined extension points, domaindrivenjs can adapt to the specific needs of your domain while providing enough structure to enforce DDD best practices.
 
 ---

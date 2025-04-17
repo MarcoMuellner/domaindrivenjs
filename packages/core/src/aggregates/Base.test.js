@@ -3,7 +3,6 @@ import { z } from "zod";
 import { aggregate } from "./Base.js";
 import {
   ValidationError,
-  DomainError,
   InvariantViolationError,
 } from "../errors/index.js";
 import {
@@ -109,7 +108,7 @@ describe("aggregate", () => {
         });
       },
 
-      cancelOrder(reason) {
+      cancelOrder() {
         if (this.status === "SHIPPED" || this.status === "COMPLETED") {
           throw new Error("Cannot cancel shipped or completed orders");
         }

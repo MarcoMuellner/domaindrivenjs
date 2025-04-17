@@ -1,6 +1,6 @@
-Domainify: Building a Modern DDD Library - Project Summary
+DomainDrivenJS: Building a Modern DDD Library - Project Summary
 What We Set Out to Build
-We've designed a modern, composition-first approach to Domain-Driven Design (DDD) in JavaScript. Our library, called Domainify, aims to make implementing DDD principles more accessible, with reduced boilerplate and improved developer experience compared to traditional inheritance-based approaches.
+We've designed a modern, composition-first approach to Domain-Driven Design (DDD) in JavaScript. Our library, called DomainDrivenJS, aims to make implementing DDD principles more accessible, with reduced boilerplate and improved developer experience compared to traditional inheritance-based approaches.
 Core DDD Concepts Explored
 We began by exploring essential DDD concepts that our library would need to support:
 
@@ -27,8 +27,8 @@ ESM-First Approach - Building with modern ES modules while maintaining CommonJS 
 Library Architecture
 We designed a modular architecture with:
 
-Core Package (@domainify) - Fundamental DDD building blocks
-Adapter Packages (@domainify/*) - Optional adapters for specific technologies (MongoDB, Prisma, Redis)
+Core Package (@domaindrivenjs) - Fundamental DDD building blocks
+Adapter Packages (@domaindrivenjs/*) - Optional adapters for specific technologies (MongoDB, Prisma, Redis)
 Separation of Domain and Infrastructure - Clean boundaries between domain logic and infrastructure concerns
 
 Project Setup Decisions
@@ -57,7 +57,7 @@ Project Configuration - The reasoning behind various TypeScript, ESM, and testin
 Immutability Patterns - How to ensure immutability in domain objects without excessive complexity
 
 Next Steps
-The foundation we've laid sets us up to implement the core components of Domainify:
+The foundation we've laid sets us up to implement the core components of DomainDrivenJS:
 
 Complete the Value Object implementation
 Implement Entity and Aggregate patterns
@@ -66,4 +66,4 @@ Create the Repository abstraction
 Develop the Specification pattern
 Build testing utilities for domain objects
 
-With this design and setup, Domainify is positioned to provide a modern, developer-friendly approach to Domain-Driven Design that aligns with contemporary JavaScript best practices.
+With this design and setup, DomainDrivenJS is positioned to provide a modern, developer-friendly approach to Domain-Driven Design that aligns with contemporary JavaScript best practices.

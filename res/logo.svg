@@ -65,5 +65,5 @@
     </g>
 
     <!-- Tech-oriented Wordmark -->
-    <text x="200" y="370" font-family="'JetBrains Mono', 'Fira Code', monospace" font-weight="700" font-size="42" fill="#1E293B" text-anchor="middle">Domainify</text>
+    <text x="200" y="370" font-family="'JetBrains Mono', 'Fira Code', monospace" font-weight="700" font-size="42" fill="#1E293B" text-anchor="middle">DomainDrivenJS</text>
 </svg>

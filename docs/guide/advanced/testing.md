@@ -1,6 +1,6 @@
 # Testing Domain-Driven Design Applications
 
-Testing is a critical aspect of Domain-Driven Design applications. A well-designed DDD application naturally supports testability through clear separation of concerns, explicit boundaries, and well-defined interfaces. This guide provides comprehensive strategies for testing different aspects of your DDD application using Domainify.
+Testing is a critical aspect of Domain-Driven Design applications. A well-designed DDD application naturally supports testability through clear separation of concerns, explicit boundaries, and well-defined interfaces. This guide provides comprehensive strategies for testing different aspects of your DDD application using DomainDrivenJS.
 
 ## Why Testing is Crucial in DDD
 
@@ -463,7 +463,7 @@ describe('FundsTransferService', () => {
     // Arrange
     const order = { id: 'order-123', status: 'PAID' };
     
-    // Define mock services using Domainify's domain service pattern
+    // Define mock services using DomainDrivenJS's domain service pattern
     const MockInventoryService = domainService({
       name: 'MockInventoryService',
       methods: {
@@ -542,7 +542,7 @@ Repositories should be tested with mock adapters to verify query and persistence
 import { expect, describe, it, beforeEach } from 'vitest';
 import { UserRepository } from '../src/domain/user/UserRepository.js';
 import { User } from '../src/domain/user/User.js';
-import { InMemoryAdapter } from 'domainify/adapters';
+import { InMemoryAdapter } from 'domaindrivenjs/adapters';
 
 describe('UserRepository', () => {
   let userRepository;
@@ -748,11 +748,11 @@ Integration tests verify that components work together correctly:
 
 ```javascript
 import { expect, describe, it, beforeEach } from 'vitest';
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 import { OrderRepository } from '../src/domain/order/OrderRepository.js';
 import { ProductRepository } from '../src/domain/product/ProductRepository.js';
 import { CustomerRepository } from '../src/domain/customer/CustomerRepository.js';
-import { InMemoryAdapter } from 'domainify/adapters';
+import { InMemoryAdapter } from 'domaindrivenjs/adapters';
 
 describe('Order Service Integration', () => {
   let orderRepository;
@@ -782,7 +782,7 @@ describe('Order Service Integration', () => {
       status: 'ACTIVE'
     }));
     
-    // Create service with Domainify domain service pattern
+    // Create service with DomainDrivenJS domain service pattern
     const OrderService = domainService({
       name: 'OrderService',
       dependencies: {
@@ -907,16 +907,16 @@ Test how different bounded contexts interact through anti-corruption layers:
 
 ```javascript
 import { expect, describe, it } from 'vitest';
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 import { ShippingRepository } from '../src/shipping/domain/ShippingRepository.js';
-import { InMemoryAdapter } from 'domainify/adapters';
+import { InMemoryAdapter } from 'domaindrivenjs/adapters';
 
 describe('Shipping and Order Context Integration', () => {
   it('should create shipment based on order data', async () => {
     // Arrange
     const shippingRepository = ShippingRepository.create(new InMemoryAdapter());
     
-    // Mock order context facade using Domainify domain service
+    // Mock order context facade using DomainDrivenJS domain service
     const OrderFacade = domainService({
       name: 'OrderFacade',
       methods: {
@@ -939,7 +939,7 @@ describe('Shipping and Order Context Integration', () => {
       }
     });
     
-    // Create the shipping service using Domainify domain service
+    // Create the shipping service using DomainDrivenJS domain service
     const ShippingService = domainService({
       name: 'ShippingService',
       dependencies: {
@@ -1002,7 +1002,7 @@ Choose the right testing double for each situation:
 
 - **Mocks**: Use for verifying interactions
   ```javascript
-  // Using Domainify domain service for mocks
+  // Using DomainDrivenJS domain service for mocks
   const MockPaymentGateway = domainService({
     name: 'MockPaymentGateway',
     methods: {
@@ -1018,7 +1018,7 @@ Choose the right testing double for each situation:
 
 - **Stubs**: Use for specific predetermined behavior
   ```javascript
-  // Using Domainify domain service for stubs
+  // Using DomainDrivenJS domain service for stubs
   const StubEventBus = domainService({
     name: 'StubEventBus',
     methods: {
@@ -1171,7 +1171,7 @@ Test performance-critical parts of your domain model:
 
 ```javascript
 import { expect, describe, it } from 'vitest';
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 describe('InventoryAllocationService Performance', () => {
   it('should allocate inventory efficiently for many orders', async () => {

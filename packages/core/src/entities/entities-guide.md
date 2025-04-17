@@ -1,6 +1,6 @@
-# Working with Entities in domainify
+# Working with Entities in domaindrivenjs
 
-Entities are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use entities effectively in your domain model with domainify.
+Entities are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use entities effectively in your domain model with domaindrivenjs.
 
 ## What are Entities?
 
@@ -15,11 +15,11 @@ The key distinction between entities and value objects is that **two entities wi
 
 ## Creating Entities
 
-The core of domainify's entity implementation is the `entity` factory function:
+The core of domaindrivenjs's entity implementation is the `entity` factory function:
 
 ```javascript
 import { z } from "zod";
-import { entity } from "domainify";
+import { entity } from "domaindrivenjs";
 
 // Define a Customer entity
 const Customer = entity({
@@ -192,7 +192,7 @@ import {
   Money,
   valueObjectSchema,
   specificValueObjectSchema,
-} from "domainify";
+} from "domaindrivenjs";
 
 const Order = entity({
   name: "Order",
@@ -312,7 +312,7 @@ const ProductById = ProductByCode.extend({
 
 ## Value Object Schema Helpers
 
-Domainify provides schema helpers to make it easier to use value objects in your entity schemas:
+DomainDrivenJS provides schema helpers to make it easier to use value objects in your entity schemas:
 
 ### General Value Object Schema
 
@@ -320,7 +320,7 @@ For any value object type:
 
 ```javascript
 import { z } from "zod";
-import { valueObjectSchema } from "domainify";
+import { valueObjectSchema } from "domaindrivenjs";
 
 const schema = z.object({
   // Accepts any value object
@@ -341,7 +341,7 @@ For specific value object types:
 
 ```javascript
 import { z } from "zod";
-import { specificValueObjectSchema, Email, Money } from "domainify";
+import { specificValueObjectSchema, Email, Money } from "domaindrivenjs";
 
 const schema = z.object({
   // Specifically validates Email value objects

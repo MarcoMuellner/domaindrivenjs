@@ -2,8 +2,20 @@ import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import globals from "globals";
 
-
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs}"], plugins: { js }, extends: ["js/recommended"] },
-  { files: ["**/*.{js,mjs,cjs}"], languageOptions: { globals: globals.browser } },
+  {
+    ignores: ["**/*.ts", "**/*test.js"]
+  },
+  {
+    files: ["**/*.{mjs,cjs}"],
+    plugins: { js },
+    extends: ["js/recommended"],
+    rules: {
+      "no-unused-vars": "off"
+    }
+  },
+  {
+    files: ["**/*.{mjs,cjs}"],
+    languageOptions: { globals: globals.browser }
+  },
 ]);

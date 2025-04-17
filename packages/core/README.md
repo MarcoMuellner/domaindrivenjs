@@ -1,14 +1,14 @@
-# Domainify
+# DomainDrivenJS
 
 A lightweight JavaScript library for building domain-driven applications.
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/domainify/main/res/logo.svg" alt="Domainify Logo" width="300">
+  <img src="https://raw.githubusercontent.com/yourusername/domaindrivenjs/main/res/logo.svg" alt="DomainDrivenJS Logo" width="300">
 </div>
 
 ## Overview
 
-Domainify provides a powerful, type-safe toolkit for implementing Domain-Driven Design patterns in JavaScript or TypeScript. It helps you create rich domain models that enforce business rules, maintain consistency, and evolve with your business requirements.
+DomainDrivenJS provides a powerful, type-safe toolkit for implementing Domain-Driven Design patterns in JavaScript or TypeScript. It helps you create rich domain models that enforce business rules, maintain consistency, and evolve with your business requirements.
 
 ## Features
 
@@ -22,14 +22,14 @@ Domainify provides a powerful, type-safe toolkit for implementing Domain-Driven 
 ## Installation
 
 ```bash
-npm install domainify zod
+npm install domaindrivenjs zod
 ```
 
 ## Quick Example
 
 ```javascript
 import { z } from 'zod';
-import { valueObject, entity, aggregate } from 'domainify';
+import { valueObject, entity, aggregate } from 'domaindrivenjs';
 
 // Define a Money value object
 const Money = valueObject({
@@ -61,7 +61,7 @@ console.log(total.format()); // $107.99
 
 ## Documentation
 
-For full documentation, visit our [documentation site](https://github.com/yourusername/domainify/tree/main/docs).
+For full documentation, visit our [documentation site](https://github.com/yourusername/domaindrivenjs/tree/main/docs).
 
 ## License
 

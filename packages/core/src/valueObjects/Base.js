@@ -123,7 +123,7 @@ export function valueObject({
             if (typeof this[prop] === "function") {
               continue;
             }
-
+            // eslint-disable-next-line no-prototype-builtins
             if (!other.hasOwnProperty(prop) || this[prop] !== other[prop]) {
               return false;
             }

@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build
-        run: pnpm --filter domainify-docs build
+        run: pnpm --filter domaindrivenjs-docs build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:

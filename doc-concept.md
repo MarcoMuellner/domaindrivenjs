@@ -1,12 +1,12 @@
-# Domainify Documentation Concept
+# DomainDrivenJS Documentation Concept
 
 ## Overview
 
-This document outlines the comprehensive plan for building the Domainify documentation using VuePress. The documentation will not only explain how to use the Domainify library but also serve as a valuable resource for learning Domain-Driven Design (DDD) concepts.
+This document outlines the comprehensive plan for building the DomainDrivenJS documentation using VuePress. The documentation will not only explain how to use the DomainDrivenJS library but also serve as a valuable resource for learning Domain-Driven Design (DDD) concepts.
 
 ## Documentation Goals
 
-- Provide clear, beginner-friendly introduction to Domainify
+- Provide clear, beginner-friendly introduction to DomainDrivenJS
 - Teach foundational DDD concepts with concrete examples
 - Serve as a comprehensive reference for the API
 - Present information in a friendly, approachable manner (similar to Fastify docs)
@@ -70,7 +70,7 @@ jobs:
 
 The landing page will feature:
 - Prominent logo and tagline
-- Clear explanation of what Domainify is
+- Clear explanation of what DomainDrivenJS is
 - Key features highlighted
 - Quick installation instructions
 - Code snippet showing basic usage
@@ -80,10 +80,10 @@ The landing page will feature:
 
 This section will help users get up and running quickly:
 
-- **Introduction to Domainify**
-    - What Domainify is
+- **Introduction to DomainDrivenJS**
+    - What DomainDrivenJS is
     - Core principles and design philosophy
-    - When to use Domainify
+    - When to use DomainDrivenJS
 
 - **Installation**
     - Instructions for npm, yarn, and pnpm
@@ -119,15 +119,15 @@ This section will explain Domain-Driven Design concepts:
 - **Implementing DDD with JavaScript**
     - Challenges and solutions
     - TypeScript considerations
-    - Domainify's approach
+    - DomainDrivenJS's approach
 
 ### 4. Core Concepts
 
-Detailed explanations of each DDD building block and how Domainify implements them:
+Detailed explanations of each DDD building block and how DomainDrivenJS implements them:
 
 - **Value Objects**
     - Definition and importance
-    - Creating value objects with Domainify
+    - Creating value objects with DomainDrivenJS
     - Validation with Zod
     - Immutability and equality
     - Common patterns and examples
@@ -135,7 +135,7 @@ Detailed explanations of each DDD building block and how Domainify implements th
 
 - **Entities**
     - Identity vs. attributes
-    - Creating entities with Domainify
+    - Creating entities with DomainDrivenJS
     - Lifecycle and state changes
     - Validation and invariants
     - Relationships with other objects
@@ -143,7 +143,7 @@ Detailed explanations of each DDD building block and how Domainify implements th
 - **Aggregates**
     - Purpose and boundaries
     - Root entities and consistency
-    - Implementing with Domainify
+    - Implementing with DomainDrivenJS
     - Transaction boundaries
     - Dealing with references
 
@@ -156,7 +156,7 @@ Detailed explanations of each DDD building block and how Domainify implements th
 
 - **Repositories**
     - Purpose and patterns
-    - Creating repositories with Domainify
+    - Creating repositories with DomainDrivenJS
     - Storage adapters
     - Query and persistence operations
     - Transaction management
@@ -169,7 +169,7 @@ Detailed explanations of each DDD building block and how Domainify implements th
 
 - **Domain Services**
     - When to use services
-    - Creating services with Domainify
+    - Creating services with DomainDrivenJS
     - Coordination between aggregates
     - Avoiding anemic domain models
 
@@ -177,7 +177,7 @@ Detailed explanations of each DDD building block and how Domainify implements th
 
 Deeper dives into more complex concepts:
 
-- **Extending Domainify Components**
+- **Extending DomainDrivenJS Components**
     - Creating custom building blocks
     - Advanced composition patterns
     - Integration with other libraries
@@ -205,7 +205,7 @@ Deeper dives into more complex concepts:
 
 ### 6. API Reference
 
-Comprehensive documentation of the Domainify API:
+Comprehensive documentation of the DomainDrivenJS API:
 
 - **Value Objects API**
     - `valueObject()` factory
@@ -244,7 +244,7 @@ Comprehensive documentation of the Domainify API:
 
 ### 7. Example Applications
 
-Full examples showing Domainify in action:
+Full examples showing DomainDrivenJS in action:
 
 - **E-commerce System**
     - Products, orders, customers
@@ -345,4 +345,4 @@ To enhance the learning experience:
 
 ## Conclusion
 
-This documentation project will create a comprehensive, user-friendly resource that not only explains how to use Domainify but also teaches Domain-Driven Design principles. By following this plan, we'll create documentation that helps developers build better software with DDD concepts, regardless of their prior experience level.
+This documentation project will create a comprehensive, user-friendly resource that not only explains how to use DomainDrivenJS but also teaches Domain-Driven Design principles. By following this plan, we'll create documentation that helps developers build better software with DDD concepts, regardless of their prior experience level.

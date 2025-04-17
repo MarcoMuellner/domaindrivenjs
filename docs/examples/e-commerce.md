@@ -1,6 +1,6 @@
 # E-commerce Domain Model
 
-This example demonstrates how to model an e-commerce domain using Domainify. We'll create a complete domain model with value objects, entities, aggregates, and repositories.
+This example demonstrates how to model an e-commerce domain using DomainDrivenJS. We'll create a complete domain model with value objects, entities, aggregates, and repositories.
 
 ## Domain Overview
 
@@ -18,7 +18,7 @@ Let's start with some fundamental value objects:
 
 ```javascript
 import { z } from 'zod';
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 // Money value object for handling currency
 const Money = valueObject({
@@ -109,7 +109,7 @@ const Email = valueObject({
 Now let's define some entities:
 
 ```javascript
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 
 // Product variant entity
 const ProductVariant = entity({
@@ -195,7 +195,7 @@ const Customer = entity({
 Let's create our aggregates:
 
 ```javascript
-import { aggregate, domainEvent } from 'domainify';
+import { aggregate, domainEvent } from 'domaindrivenjs';
 
 // Product aggregate
 const Product = aggregate({
@@ -787,8 +787,8 @@ const ShoppingCart = aggregate({
 Now let's define repositories for our aggregates:
 
 ```javascript
-import { repository } from 'domainify';
-import { MongoAdapter } from 'domainify/adapters';
+import { repository } from 'domaindrivenjs';
+import { MongoAdapter } from 'domaindrivenjs/adapters';
 
 // Product repository
 const ProductRepository = repository({
@@ -909,7 +909,7 @@ const createRepositories = (connectionString) => {
 Finally, let's create some domain services to orchestrate operations:
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 import { v4 as uuidv4 } from 'uuid';
 
 // Order processing service
@@ -1167,7 +1167,7 @@ eventBus.subscribe(OrderPaid, async (event) => {
 
 ## Conclusion
 
-This example demonstrates how Domainify can be used to build a complete domain model for an e-commerce application. The model includes:
+This example demonstrates how DomainDrivenJS can be used to build a complete domain model for an e-commerce application. The model includes:
 
 - **Value Objects**: Money, Address, Email, OrderLineItem, CartItem
 - **Entities**: ProductVariant, Customer
@@ -1176,4 +1176,4 @@ This example demonstrates how Domainify can be used to build a complete domain m
 - **Domain Services**: OrderProcessingService, PricingService
 - **Domain Events**: OrderCreated, OrderPaid
 
-The domain model enforces business rules, maintains consistency, and provides a clear structure for the application logic. It uses Domainify's composition-based approach to create a flexible, maintainable codebase that accurately represents the e-commerce domain.
+The domain model enforces business rules, maintains consistency, and provides a clear structure for the application logic. It uses DomainDrivenJS's composition-based approach to create a flexible, maintainable codebase that accurately represents the e-commerce domain.

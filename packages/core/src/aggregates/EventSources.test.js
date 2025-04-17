@@ -1,5 +1,5 @@
 // packages/core/src/aggregates/EventSourced.test.js
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { withEvents, updateWithEvents } from "./EventSourced.js";
 import { z } from "zod";
 import { domainEvent } from "../events/Base.js";

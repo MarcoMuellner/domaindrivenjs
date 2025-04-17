@@ -54,12 +54,12 @@ This dual nature allows you to use the same business rule both to filter in-memo
 └─────────────────────────┘
 ```
 
-## Creating Specifications with Domainify
+## Creating Specifications with DomainDrivenJS
 
-Domainify provides a flexible way to create specifications:
+DomainDrivenJS provides a flexible way to create specifications:
 
 ```javascript
-import { specification } from 'domainify';
+import { specification } from 'domaindrivenjs';
 
 // Create a specification for in-stock products
 const InStock = specification({

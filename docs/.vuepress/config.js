@@ -7,9 +7,9 @@ import { viteBundler } from '@vuepress/bundler-vite'
 export default defineUserConfig({
   bundler: viteBundler(),
   lang: 'en-US',
-  title: 'Domainify',
+  title: 'DomainDrivenJS',
   description: 'A modern, composition-based Domain-Driven Design library for JavaScript',
-  base: '/domainify/',
+  base: '/domaindrivenjs/',
   head: [
     ['link', { rel: 'icon', href: '/images/logo.png' }],
     ['meta', { name: 'theme-color', content: '#3498db' }],
@@ -19,7 +19,7 @@ export default defineUserConfig({
 
   theme: defaultTheme({
     logo: '/images/logo.png',
-    repo: 'MarcoMuellner/Domainify',
+    repo: 'MarcoMuellner/DomainDrivenJS',
     docsDir: 'docs',
     editLink: true,
     editLinkText: 'Help us improve this page!',

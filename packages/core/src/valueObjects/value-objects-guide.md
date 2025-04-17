@@ -1,6 +1,6 @@
-# Working with Value Objects in domainify
+# Working with Value Objects in domaindrivenjs
 
-Value objects are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use value objects effectively in your domain model with domainify.
+Value objects are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use value objects effectively in your domain model with domaindrivenjs.
 
 ## What are Value Objects?
 
@@ -15,11 +15,11 @@ Key characteristics:
 
 ## Creating Value Objects
 
-The core of domainify's value object implementation is the `valueObject` factory function that creates immutable, self-validating objects:
+The core of domaindrivenjs's value object implementation is the `valueObject` factory function that creates immutable, self-validating objects:
 
 ```javascript
 import { z } from "zod";
-import { valueObject } from "domainify";
+import { valueObject } from "domaindrivenjs";
 
 const Money = valueObject({
   name: "Money",
@@ -59,14 +59,14 @@ const total = price.add(tax); // Returns a new Money instance
 
 ## Built-in Value Objects
 
-domainify provides several primitive value objects for common use cases:
+domaindrivenjs provides several primitive value objects for common use cases:
 
 ### String
 
 A general-purpose string value object with common text operations:
 
 ```javascript
-import { String } from "domainify";
+import { String } from "domaindrivenjs";
 
 // Create a string
 const text = String.create("Hello World");
@@ -83,7 +83,7 @@ const contains = text.contains("World"); // true
 Extends the String value object to ensure the string is not empty:
 
 ```javascript
-import { NonEmptyString } from "domainify";
+import { NonEmptyString } from "domaindrivenjs";
 
 // Create a non-empty string
 const name = NonEmptyString.create("John Doe");
@@ -101,7 +101,7 @@ try {
 A general-purpose number value object with mathematical operations:
 
 ```javascript
-import { Number } from "domainify";
+import { Number } from "domaindrivenjs";
 
 // Create a number
 const num = Number.create(42);
@@ -119,7 +119,7 @@ const currency = num.toCurrency("USD"); // "$42.00"
 Extends the Number value object to ensure the number is greater than zero:
 
 ```javascript
-import { PositiveNumber } from "domainify";
+import { PositiveNumber } from "domaindrivenjs";
 
 // Create a positive number
 const price = PositiveNumber.create(19.99);
@@ -137,7 +137,7 @@ try {
 Ensures the number is zero or greater:
 
 ```javascript
-import { NonNegativeNumber } from "domainify";
+import { NonNegativeNumber } from "domaindrivenjs";
 
 // Create a non-negative number
 const count = NonNegativeNumber.create(5);
@@ -156,7 +156,7 @@ try {
 Ensures the number is an integer:
 
 ```javascript
-import { IntegerNumber } from "domainify";
+import { IntegerNumber } from "domaindrivenjs";
 
 // Create an integer
 const count = IntegerNumber.create(5);
@@ -174,7 +174,7 @@ try {
 Ensures the number is between 0 and 1, representing a percentage:
 
 ```javascript
-import { PercentageNumber } from "domainify";
+import { PercentageNumber } from "domaindrivenjs";
 
 // Create a percentage
 const discount = PercentageNumber.create(0.25); // 25%
@@ -195,7 +195,7 @@ try {
 A specialized value object for handling identifiers and IDs:
 
 ```javascript
-import { Identifier } from "domainify";
+import { Identifier } from "domaindrivenjs";
 
 // Create a basic identifier
 const id = Identifier.create("user-123");
@@ -217,7 +217,7 @@ const newUuid = Identifier.generateUUID();
 You can extend existing value objects to create new ones with additional properties or methods:
 
 ```javascript
-import { NonEmptyString } from "domainify";
+import { NonEmptyString } from "domaindrivenjs";
 
 // Extend NonEmptyString to create an Email value object
 const Email = NonEmptyString.extend({
@@ -250,7 +250,7 @@ You can compose complex value objects from simpler ones:
 
 ```javascript
 import { z } from "zod";
-import { valueObject, PositiveNumber, NonEmptyString } from "domainify";
+import { valueObject, PositiveNumber, NonEmptyString } from "domaindrivenjs";
 
 // Create a Currency value object
 const Currency = NonEmptyString.extend({
@@ -311,7 +311,7 @@ console.log(total.format()); // "$11.54"
 
 ## Built-in Behaviors
 
-All value objects created with domainify have these built-in behaviors:
+All value objects created with domaindrivenjs have these built-in behaviors:
 
 ### Immutability
 

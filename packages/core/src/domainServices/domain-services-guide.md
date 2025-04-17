@@ -1,6 +1,6 @@
-# Working with Domain Services in domainify
+# Working with Domain Services in domaindrivenjs
 
-Domain Services are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use domain services effectively in your domain model with domainify.
+Domain Services are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use domain services effectively in your domain model with domaindrivenjs.
 
 ## What are Domain Services?
 
@@ -16,10 +16,10 @@ Key characteristics:
 
 ## Creating Domain Services
 
-The core of domainify's domain service implementation is the `domainService` factory function:
+The core of domaindrivenjs's domain service implementation is the `domainService` factory function:
 
 ```javascript
-import { domainService } from "domainify";
+import { domainService } from "domaindrivenjs";
 
 const PaymentProcessor = domainService({
   name: "PaymentProcessor",

@@ -1,6 +1,6 @@
-# Working with Repositories in domainify
+# Working with Repositories in domaindrivenjs
 
-Repositories are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use repositories effectively in your domain model with domainify.
+Repositories are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use repositories effectively in your domain model with domaindrivenjs.
 
 ## What are Repositories?
 
@@ -16,11 +16,11 @@ The repository pattern ensures that your domain model remains focused on busines
 
 ## Creating Repositories
 
-The core of domainify's repository implementation is the `repository` factory function:
+The core of domaindrivenjs's repository implementation is the `repository` factory function:
 
 ```javascript
 import { z } from "zod";
-import { aggregate, repository, createInMemoryAdapter } from "domainify";
+import { aggregate, repository, createInMemoryAdapter } from "domaindrivenjs";
 
 // Define an Order aggregate
 const Order = aggregate({
@@ -64,14 +64,14 @@ const OrderRepository = repository({
 
 ## Repository Adapters
 
-Domainify provides adapters for different storage technologies to keep your domain model independent of persistence details.
+DomainDrivenJS provides adapters for different storage technologies to keep your domain model independent of persistence details.
 
 ### In-Memory Adapter
 
 The in-memory adapter is useful for testing or simple applications:
 
 ```javascript
-import { createInMemoryAdapter } from "domainify";
+import { createInMemoryAdapter } from "domaindrivenjs";
 
 const inMemoryAdapter = createInMemoryAdapter({
   identity: "id",
@@ -87,7 +87,7 @@ The Prisma adapter connects to databases using Prisma ORM:
 
 ```javascript
 import { PrismaClient } from "@prisma/client";
-import { createPrismaAdapter } from "domainify";
+import { createPrismaAdapter } from "domaindrivenjs";
 
 const prisma = new PrismaClient();
 
@@ -120,7 +120,7 @@ const prismaAdapter = createPrismaAdapter({
 
 ## Repository Methods
 
-Domainify repositories provide a comprehensive set of methods for working with aggregates:
+DomainDrivenJS repositories provide a comprehensive set of methods for working with aggregates:
 
 ### Core Methods
 

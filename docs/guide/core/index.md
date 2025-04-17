@@ -1,6 +1,6 @@
 # Core Domain-Driven Design Concepts
 
-Domain-Driven Design provides a set of powerful building blocks to express your domain model in code. Domainify makes these concepts easy to implement with a modern, functional approach tailored to JavaScript.
+Domain-Driven Design provides a set of powerful building blocks to express your domain model in code. DomainDrivenJS makes these concepts easy to implement with a modern, functional approach tailored to JavaScript.
 
 <!-- DIAGRAM: A layered or connected diagram showing how the different DDD building blocks relate to each other, with value objects and entities at the foundation, aggregates grouping them, and repositories, services, and events connecting to them -->
 

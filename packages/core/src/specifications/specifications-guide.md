@@ -1,6 +1,6 @@
-# Working with Specifications in domainify
+# Working with Specifications in domaindrivenjs
 
-Specifications are a powerful pattern in Domain-Driven Design that encapsulate business rules as objects. This guide explains how to create and use specifications effectively in your domain model with domainify.
+Specifications are a powerful pattern in Domain-Driven Design that encapsulate business rules as objects. This guide explains how to create and use specifications effectively in your domain model with domaindrivenjs.
 
 ## What are Specifications?
 
@@ -15,10 +15,10 @@ Key characteristics:
 
 ## Creating Basic Specifications
 
-The core of domainify's specification implementation is the `specification` factory function:
+The core of domaindrivenjs's specification implementation is the `specification` factory function:
 
 ```javascript
-import { specification } from "domainify";
+import { specification } from "domaindrivenjs";
 
 const PremiumCustomer = specification({
   name: "PremiumCustomer",
@@ -80,7 +80,7 @@ The combined specifications also preserve query capabilities, generating the app
 
 ## Built-in Common Specifications
 
-domainify provides common specifications for frequently used business rules:
+domaindrivenjs provides common specifications for frequently used business rules:
 
 ### Property Comparison Specifications
 
@@ -91,7 +91,7 @@ import {
   propertyLessThan,
   propertyBetween,
   propertyIn,
-} from "domainify";
+} from "domaindrivenjs";
 
 // Check if status is "active"
 const ActiveAccount = propertyEquals("status", "active");
@@ -113,7 +113,7 @@ const PriorityCategory = propertyIn("category", ["A", "B", "Premium"]);
 ### String Content Specifications
 
 ```javascript
-import { propertyContains, propertyMatches } from "domainify";
+import { propertyContains, propertyMatches } from "domaindrivenjs";
 
 // Check if name contains "Smith"
 const SmithFamily = propertyContains("name", "Smith");
@@ -125,7 +125,7 @@ const CorporateEmail = propertyMatches("email", /^[\w.-]+@company\.com$/);
 ### Null/Existence Specifications
 
 ```javascript
-import { propertyIsNull, propertyIsNotNull } from "domainify";
+import { propertyIsNull, propertyIsNotNull } from "domaindrivenjs";
 
 // Check if a property is null/undefined
 const MissingAddress = propertyIsNull("address");
@@ -137,7 +137,7 @@ const HasPhoneNumber = propertyIsNotNull("phoneNumber");
 ### Special Specifications
 
 ```javascript
-import { alwaysTrue, alwaysFalse } from "domainify";
+import { alwaysTrue, alwaysFalse } from "domaindrivenjs";
 
 // Always returns true - useful as default or placeholder
 const AllowAll = alwaysTrue();
@@ -151,7 +151,7 @@ const DenyAll = alwaysFalse();
 Create reusable specification factories for dynamic business rules:
 
 ```javascript
-import { parameterizedSpecification } from "domainify";
+import { parameterizedSpecification } from "domaindrivenjs";
 
 // Create a specification factory for price ranges
 const PriceRange = parameterizedSpecification({

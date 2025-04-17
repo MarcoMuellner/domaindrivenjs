@@ -150,11 +150,11 @@ class Member {
 }
 ```
 
-With Domainify, you can express the language directly in your domain model:
+With DomainDrivenJS, you can express the language directly in your domain model:
 
 ```javascript
 import { z } from 'zod';
-import { entity, valueObject } from 'domainify';
+import { entity, valueObject } from 'domaindrivenjs';
 
 // Value objects using domain language
 const SubscriptionPlan = valueObject({
@@ -350,9 +350,9 @@ Add ubiquitous language checks to your code review process:
 - Do tests use the same terminology as the code and domain experts?
 - Could a domain expert understand the high-level code structure?
 
-## Implementing with Domainify
+## Implementing with DomainDrivenJS
 
-Domainify supports ubiquitous language through its design:
+DomainDrivenJS supports ubiquitous language through its design:
 
 ### 1. Explicit Naming
 
@@ -426,7 +426,7 @@ Let's look at a more complete example of how ubiquitous language shapes code in 
 
 ```javascript
 import { z } from 'zod';
-import { entity, valueObject, aggregate } from 'domainify';
+import { entity, valueObject, aggregate } from 'domaindrivenjs';
 
 // Value Objects
 const LibraryCardNumber = valueObject({

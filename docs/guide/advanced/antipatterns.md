@@ -1223,4 +1223,4 @@ class UserService {
 
 - Learn about [Best Practices](./best-practices.md) to counteract these anti-patterns
 - Explore [Testing in DDD](./testing.md) to ensure your domain model works correctly
-- Discover how to [Extend Domainify Components](./extending-components.md) for your specific needs
+- Discover how to [Extend DomainDrivenJS Components](./extending-components.md) for your specific needs

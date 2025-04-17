@@ -1,6 +1,6 @@
-# Working with Domain Events in domainify
+# Working with Domain Events in domaindrivenjs
 
-Domain Events are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use domain events effectively in your application with domainify.
+Domain Events are a fundamental building block in Domain-Driven Design (DDD). This guide explains how to create and use domain events effectively in your application with domaindrivenjs.
 
 ## What are Domain Events?
 
@@ -23,11 +23,11 @@ Domain events serve several important purposes:
 
 ## Creating Domain Events
 
-The core of domainify's domain event implementation is the `domainEvent` factory function:
+The core of domaindrivenjs's domain event implementation is the `domainEvent` factory function:
 
 ```javascript
 import { z } from "zod";
-import { domainEvent } from "domainify";
+import { domainEvent } from "domaindrivenjs";
 
 // Define an OrderPlaced event
 const OrderPlaced = domainEvent({
@@ -75,7 +75,7 @@ const orderPlacedEvent = OrderPlaced.create({
 The Event Bus is the central mechanism for publishing events and subscribing to them:
 
 ```javascript
-import { eventBus } from "domainify";
+import { eventBus } from "domaindrivenjs";
 
 // Subscribe to an event
 const subscription = eventBus.on(OrderPlaced, (event) => {
@@ -101,7 +101,7 @@ Aggregates are the primary source of domain events. Events represent significant
 
 ```javascript
 import { z } from "zod";
-import { aggregate, domainEvent } from "domainify";
+import { aggregate, domainEvent } from "domaindrivenjs";
 
 // Define an OrderPlaced event
 const OrderPlaced = domainEvent({
@@ -293,7 +293,7 @@ const internationalEvent = InternationalOrderPlaced.create({
 You can create custom adapters for integrating with messaging systems:
 
 ```javascript
-import { createEventBus } from "domainify";
+import { createEventBus } from "domaindrivenjs";
 
 // Create a custom adapter for RabbitMQ
 const rabbitMQAdapter = {
@@ -403,7 +403,7 @@ In some cases, you might have standalone Entities that aren't part of any Aggreg
 
 ## Event Sourcing
 
-For more advanced scenarios, domainify can be used for event sourcing, where the state of an aggregate is reconstructed from its history of events:
+For more advanced scenarios, domaindrivenjs can be used for event sourcing, where the state of an aggregate is reconstructed from its history of events:
 
 ```javascript
 // Define events

@@ -1,14 +1,14 @@
 {
-  "name": "domainify-docs",
+  "name": "domaindrivenjs-docs",
   "version": "0.1.0",
-  "description": "Documentation for Domainify - A modern, composition-based Domain-Driven Design library",
+  "description": "Documentation for DomainDrivenJS - A modern, composition-based Domain-Driven Design library",
   "main": "index.js",
   "scripts": {
     "dev": "vuepress dev .",
     "build": "vuepress build ."
   },
   "keywords": [
-    "domainify",
+    "domaindrivenjs",
     "ddd",
     "documentation",
     "domain-driven-design"

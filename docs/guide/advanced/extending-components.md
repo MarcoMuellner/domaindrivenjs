@@ -1,10 +1,10 @@
-# Extending Domainify Components
+# Extending DomainDrivenJS Components
 
-Domainify provides a solid foundation for implementing Domain-Driven Design in JavaScript, but real-world applications often require customization. This guide explains how to extend Domainify's core components to address specific domain requirements.
+DomainDrivenJS provides a solid foundation for implementing Domain-Driven Design in JavaScript, but real-world applications often require customization. This guide explains how to extend DomainDrivenJS's core components to address specific domain requirements.
 
 ## Why Extend Components?
 
-Extending Domainify components allows you to:
+Extending DomainDrivenJS components allows you to:
 
 - Add custom behavior to domain objects across your application
 - Implement cross-cutting concerns like logging or validation
@@ -19,7 +19,7 @@ Extending Domainify components allows you to:
 You can create custom value object factories with additional behaviors or validations:
 
 ```javascript
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 // Create a custom value object factory with additional features
 function customValueObject(config) {
@@ -78,7 +78,7 @@ const Money = customValueObject({
 For consistent value objects across a specific domain concept:
 
 ```javascript
-import { valueObject } from 'domainify';
+import { valueObject } from 'domaindrivenjs';
 
 // Create a specialized factory for quantity-related value objects
 function quantityValueObject(config) {
@@ -143,7 +143,7 @@ const Weight = quantityValueObject({
 Create base entity classes with common behavior:
 
 ```javascript
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 
 // Create a base entity with audit fields
 function auditedEntity(config) {
@@ -201,7 +201,7 @@ const newProduct = Product.create(
 Extend entities with domain event handling:
 
 ```javascript
-import { entity } from 'domainify';
+import { entity } from 'domaindrivenjs';
 
 // Base entity with domain events
 function eventSourcedEntity(config) {
@@ -293,7 +293,7 @@ const Order = eventSourcedEntity({
 Create specialized aggregate types with custom behavior:
 
 ```javascript
-import { aggregate } from 'domainify';
+import { aggregate } from 'domaindrivenjs';
 
 // Base aggregate for all financial aggregates
 function financialAggregate(config) {
@@ -379,7 +379,7 @@ const Account = financialAggregate({
 Add middleware for cross-cutting concerns:
 
 ```javascript
-import { aggregate } from 'domainify';
+import { aggregate } from 'domaindrivenjs';
 
 // Add validation middleware to aggregates
 function validatedAggregate(config) {
@@ -463,7 +463,7 @@ const ShoppingCart = validatedAggregate({
 Create custom repository base classes:
 
 ```javascript
-import { repository } from 'domainify';
+import { repository } from 'domaindrivenjs';
 
 // Create a cached repository base
 function cachedRepository(config) {
@@ -574,7 +574,7 @@ const freshProduct = await productRepo.findById('123', { skipCache: true });
 Add logging to repositories:
 
 ```javascript
-import { repository } from 'domainify';
+import { repository } from 'domaindrivenjs';
 
 // Repository with logging
 function loggedRepository(config, logger) {
@@ -704,10 +704,10 @@ const OrderRepository = loggedRepository({
 
 ### Creating Service Base Classes
 
-Create specialized service base classes using Domainify's domain service pattern:
+Create specialized service base classes using DomainDrivenJS's domain service pattern:
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 // Create a transactional domain service factory
 function transactionalDomainService(config, transactionManager) {
@@ -778,7 +778,7 @@ const orderProcessingService = OrderProcessingService.create({
 Add features like validation, logging, and metrics to domain services:
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 // Enhanced domain service with monitoring
 function monitoredDomainService(config, { logger, metrics }) {
@@ -898,7 +898,7 @@ const result = await paymentProcessor.processPayment(payment);
 Create middleware for domain services to handle cross-cutting concerns:
 
 ```javascript
-import { domainService } from 'domainify';
+import { domainService } from 'domaindrivenjs';
 
 // Domain service middleware factory
 function withMiddleware(serviceFactory, middleware) {
@@ -985,7 +985,7 @@ const PaymentService = domainServiceWithValidation({
 Create custom specification factories:
 
 ```javascript
-import { specification } from 'domainify';
+import { specification } from 'domaindrivenjs';
 
 // Factory for date range specifications
 function dateRangeSpecification(config) {
@@ -1048,7 +1048,7 @@ const lastWeekOrders = await orderRepository.findMany(
 Build a library of common specifications:
 
 ```javascript
-import { specification } from 'domainify';
+import { specification } from 'domaindrivenjs';
 
 // Library of reusable specifications
 const SpecificationLibrary = {
@@ -1154,7 +1154,7 @@ const productsMatchingSearch = await productRepository.findMany(
 Create custom adapters for repositories:
 
 ```javascript
-import { InMemoryAdapter } from 'domainify/adapters';
+import { InMemoryAdapter } from 'domaindrivenjs/adapters';
 
 // Custom ElasticSearch adapter
 class ElasticsearchAdapter {
@@ -1346,10 +1346,10 @@ const productRepo = ProductRepository.create(
 
 ### Event Publishing Integration
 
-Integrate with event bus systems using Domainify's domain services:
+Integrate with event bus systems using DomainDrivenJS's domain services:
 
 ```javascript
-import { aggregate, domainService } from 'domainify';
+import { aggregate, domainService } from 'domaindrivenjs';
 
 // Event sourced aggregate
 function eventSourcedAggregate(config) {
@@ -1521,7 +1521,7 @@ const OrderService = domainService({
 });
 ```
 
-## Best Practices for Extending Domainify
+## Best Practices for Extending DomainDrivenJS
 
 1. **Start with composition before inheritance**: Use factory functions and composition for extensions
 2. **Keep core domain logic pure**: Extensions should enhance, not mix with core domain logic

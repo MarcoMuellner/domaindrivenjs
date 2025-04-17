@@ -57,13 +57,13 @@ order.shipTo(newAddress); // Order aggregate handles internal consistency
 inventory.decreaseStock(productId, 2); // Inventory aggregate handles stock rules
 ```
 
-## Creating Aggregates with Domainify
+## Creating Aggregates with DomainDrivenJS
 
-Domainify makes creating aggregates straightforward with the `aggregate` factory function:
+DomainDrivenJS makes creating aggregates straightforward with the `aggregate` factory function:
 
 ```javascript
 import { z } from 'zod';
-import { aggregate, valueObject } from 'domainify';
+import { aggregate, valueObject } from 'domaindrivenjs';
 
 // Define a value object for use within the aggregate
 const LineItem = valueObject({
@@ -344,7 +344,7 @@ console.log(order.status); // 'PLACED'
 
 ### Immutability and State Changes
 
-Like entities in Domainify, aggregates are immutable. State changes create new instances:
+Like entities in DomainDrivenJS, aggregates are immutable. State changes create new instances:
 
 ```javascript
 const draftOrder = Order.create({/*...*/});
@@ -504,7 +504,7 @@ Referencing by identity provides several benefits:
 Each aggregate type should have its own repository for persistence:
 
 ```javascript
-import { repository } from 'domainify';
+import { repository } from 'domaindrivenjs';
 
 const OrderRepository = repository({
   aggregate: Order,

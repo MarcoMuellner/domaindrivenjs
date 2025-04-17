@@ -116,11 +116,11 @@ Domain-Driven Design was introduced by Eric Evans in his 2003 book "Domain-Drive
 - **Modern Language Features**: Taking advantage of features in modern programming languages
 - **Functional Programming**: Exploring DDD implementation with functional approaches
 
-Domainify represents a modern approach to DDD that embraces JavaScript/TypeScript features and functional composition patterns rather than relying on traditional object-oriented inheritance hierarchies.
+DomainDrivenJS represents a modern approach to DDD that embraces JavaScript/TypeScript features and functional composition patterns rather than relying on traditional object-oriented inheritance hierarchies.
 
-## How Domainify Helps
+## How DomainDrivenJS Helps
 
-Domainify makes it easier to apply DDD principles in JavaScript applications by providing:
+DomainDrivenJS makes it easier to apply DDD principles in JavaScript applications by providing:
 
 1. **Composition-Based Approach**: Creating domain objects through factory functions rather than class inheritance
 2. **Validation with Zod**: Ensuring domain objects are always valid with clear error messages
