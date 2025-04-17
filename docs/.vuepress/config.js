@@ -9,7 +9,7 @@ export default defineUserConfig({
   lang: 'en-US',
   title: 'Domainify',
   description: 'A modern, composition-based Domain-Driven Design library for JavaScript',
-
+  base: '/domainify/',
   head: [
     ['link', { rel: 'icon', href: '/images/logo.png' }],
     ['meta', { name: 'theme-color', content: '#3498db' }],

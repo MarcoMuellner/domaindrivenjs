@@ -13,27 +13,51 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": ["./dist/index.d.ts"]
+    }
+  },
   "files": [
     "dist",
+    "src/index.d.ts",
     "README.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && pnpm run copy-types",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .js,.ts",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "docs": "jsdoc -c jsdoc.json",
+    "prepublish": "pnpm run test && pnpm run lint && pnpm run build",
+    "prepublishOnly": "pnpm run build",
+    "generate-types": "tsc --project tsconfig.types.json",
+    "copy-types": "cp src/index.d.ts dist/"
   },
   "keywords": [
     "ddd",
     "domain-driven-design",
+    "domain",
+    "entity",
+    "value-object",
+    "aggregate",
+    "repository",
     "typescript",
     "javascript"
   ],
-  "author": "",
+  "author": "Domainify Team",
   "license": "MIT",
+  "homepage": "https://github.com/yourusername/domainify",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/domainify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/domainify/issues"
+  },
   "dependencies": {
     "zod": "^3.24.2"
   },
@@ -45,9 +69,16 @@
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
     "globals": "^16.0.0",
+    "jsdoc": "^4.0.2",
     "prettier": "^3.5.3",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
     "vitest": "^3.1.1"
+  },
+  "peerDependencies": {
+    "zod": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
