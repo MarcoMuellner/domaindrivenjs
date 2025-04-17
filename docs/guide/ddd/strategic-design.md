@@ -1,199 +1,288 @@
-# Strategic Design in DDD
+# Strategic Design in Domain-Driven Design
 
-Strategic design is one of the two main aspects of Domain-Driven Design (the other being [tactical design](./tactical-design.md)). While tactical design focuses on implementation patterns, strategic design is about understanding the big picture - how to organize your domain model to reflect the reality of your business.
+Strategic design is the foundation of Domain-Driven Design, focusing on the "big picture" of your software. While tactical design (entities, value objects, etc.) helps with code-level decisions, strategic design helps you organize your entire system according to business realities.
 
-## What is Strategic Design?
+<!-- DIAGRAM: Visual showing strategic design concepts as a map/landscape with bounded contexts as territories, context mapping as bridges/paths between them, and core domain highlighted in the center -->
 
-Strategic design involves:
+## Why Is Strategic Design Important?
 
-- Identifying and organizing the different areas of your domain
-- Defining clear boundaries and relationships between these areas
-- Creating a shared language between technical and domain experts
-- Focusing development efforts on the areas that matter most to the business
+Before diving into the patterns, let's understand why strategic design matters:
 
-## Core Concepts of Strategic Design
+1. **Large systems become unmanageable without boundaries** - As systems grow, a single unified model becomes unwieldy and contradictory
+2. **Different parts of your business have different priorities** - Some areas require more investment than others
+3. **Teams need clear boundaries for autonomy** - Explicit boundaries help teams work independently
+4. **Integration between subsystems requires clarity** - Well-defined relationships prevent miscommunication
 
-### Bounded Contexts
+## Bounded Contexts
 
-A bounded context is a conceptual boundary around a specific model. Within this boundary, terms and concepts have a clear, consistent meaning. Different bounded contexts might use the same term to mean something different, or different terms to mean the same thing.
+A bounded context is a conceptual boundary around a specific model. Within this boundary, terms, concepts, and rules are consistently defined and used.
 
-![Bounded Contexts Diagram](../../.vuepress/public/images/bounded-contexts.png)
+### Key Characteristics
 
-For example, in an e-commerce system:
+- **Explicit boundary** - Clear definition of what's inside vs. outside
+- **Linguistic consistency** - Terms have a single meaning inside the boundary
+- **Unified model** - All concepts within the context form a cohesive model
+- **Dedicated team ownership** - Typically owned by a single team
+- **Physical manifestation** - Often manifests as separate codebases or modules
 
-- In the **Order Management Context**, a "Product" might simply be an item with a SKU, price, and inventory count
-- In the **Catalog Context**, a "Product" might have detailed attributes, categories, images, and related products
-- In the **Shipping Context**, a "Product" might be defined by its weight, dimensions, and fragility
+### Real World Example
 
-Each context can independently define what a "Product" means within its boundaries.
+Consider an e-commerce system:
 
-#### Benefits of Bounded Contexts
+- **Product Catalog Context** - Here "Product" means something with a description, price, and categories
+- **Inventory Context** - Here "Product" relates to physical items with stock levels and locations
+- **Order Context** - Here "Product" is just a line item with a SKU, price, and quantity
 
-- **Reduces complexity**: Each team can focus on a smaller, cohesive model
-- **Enables parallel work**: Different teams can work on different contexts
-- **Enables specialized models**: Each context can use a model that best fits its needs
-- **Clarifies communication**: Avoids confusion when the same term means different things in different departments
+While all three use the term "Product," its meaning, attributes, and behaviors differ in each context.
 
-### Context Mapping
+### Identifying Bounded Contexts
 
-Context mapping identifies the relationships between different bounded contexts and how they interact. These relationships clarify how models in different contexts relate to each other and how changes in one context might affect another.
+Look for these signals to identify potential bounded context boundaries:
 
-![Context Map Diagram](../../.vuepress/public/images/context-map.png)
+- Different teams using the same terms differently
+- Awkward translations between parts of the system
+- Concepts that make sense in one area but not another
+- Natural divisions in business processes
+- Areas with different rates of change
+- Legacy systems that need integration
 
-#### Types of Context Relationships
+### Practical Tips
 
-- **Partnership**: Two contexts are developed together with aligned goals
-- **Shared Kernel**: Different contexts share a subset of their domain models
-- **Customer-Supplier**: One context acts as a service provider to another
-- **Conformist**: One context must conform to the model of another
-- **Anticorruption Layer**: A layer that translates between incompatible models
-- **Open Host Service**: A context defines a protocol for integration
-- **Published Language**: A shared, documented format for communication between contexts
-- **Separate Ways**: Contexts have no connection and can evolve independently
+1. **Draw context boundaries on a whiteboard** - Visualize where your contexts begin and end
+2. **Create a glossary for each context** - Document terms and their meanings
+3. **Identify "translation" points** - Where do concepts cross boundaries?
+4. **Start broader, refine later** - Begin with larger contexts and subdivide as needed
 
-#### Context Map Example
+## Context Mapping
 
-In an e-commerce system:
+Context mapping is the process of identifying relationships between bounded contexts. It helps you understand how different parts of your system interact and influence each other.
 
-- **Customer Service** � **Order Management**: Customer Service uses an Anticorruption Layer to access order data
-- **Order Management** � **Inventory**: Partnership relationship with shared integration points
-- **Payments** � **Order Management**: Order Management conforms to the Payment context's model
-- **Marketing** � **Catalog**: Marketing uses Catalog as a service through an Open Host Service
+### Common Context Map Relationships
+
+<!-- DIAGRAM: Visual showing different types of context relationships with simple icons or symbols for each -->
+
+1. **Partnership** (🤝) - Two teams collaborate closely with mutual dependencies
+   ```
+   Team A 🤝 Team B
+   ```
+
+2. **Shared Kernel** (⚙️) - Multiple contexts share a subset of the model
+   ```
+   Context A ⚙️ Context B
+   ```
+
+3. **Customer-Supplier** (🔄) - Upstream provides what downstream needs
+   ```
+   Supplier Context ➡️ Customer Context
+   ```
+
+4. **Conformist** (📋) - Downstream adopts upstream's model without influence
+   ```
+   Upstream Context ➡️📋 Downstream Context
+   ```
+
+5. **Anti-Corruption Layer** (🛡️) - Translation layer protects a model from external concepts
+   ```
+   External System ➡️🛡️ Your Context
+   ```
+
+6. **Open Host Service** (🔌) - Well-defined API for integration
+   ```
+   Core System 🔌 Multiple Consumers
+   ```
+
+7. **Published Language** (📢) - Shared documented interchange format
+   ```
+   Multiple Systems 📢 Published Schema
+   ```
+
+8. **Separate Ways** (↔️) - No integration (cut off relationship)
+   ```
+   Context A ↔️ Context B
+   ```
+
+9. **Big Ball of Mud** (🧶) - Undefined/ambiguous boundaries (anti-pattern)
+   ```
+   System 🧶
+   ```
+
+### Drawing a Context Map
+
+Create a visual representation of your system's contexts and their relationships:
+
+1. **Draw each bounded context as a circle or box**
+2. **Connect them with arrows showing relationships**
+3. **Label the nature of each relationship** (using patterns above)
+4. **Add notes about integration points and translations**
+
+### Real Example
+
+```
+Catalog Context 🔌📢 ➡️ Order Context
+       ⬇️
+Inventory Context 🛡️ ➡️ Shipping Context
+       ⬆️
+  Legacy ERP ↔️ Modern Analytics Platform
+```
+
+## Domain Types
+
+Not all parts of your system are equally valuable. DDD identifies different types of domains to help you allocate effort appropriately.
 
 ### Core Domain
 
-The core domain is the part of your system that represents your organization's competitive advantage or key differentiator. It's where you should focus your most experienced team members and invest in creating a deep, rich model.
+The core domain is your competitive advantage - it's what makes your business unique and provides the most value.
 
-#### Identifying the Core Domain
+**Characteristics:**
+- Differentiates your business from competitors
+- Requires specialized knowledge
+- Changes frequently as business evolves
+- Worth significant investment
+- Should be built in-house
 
-Ask these questions:
-- What gives our business a competitive advantage?
-- What would we never outsource?
-- What part of our system would cause the most damage if it failed?
-- Where would we get the most value from improvements?
+**Examples:**
+- Recommendation algorithm for a streaming service
+- Risk assessment for an insurance company
+- Matching algorithm for a dating app
 
-#### Core vs. Supporting vs. Generic Subdomains
+### Supporting Domains
 
-- **Core Domain**: Your competitive advantage (e.g., recommendation algorithm for an e-commerce site)
-- **Supporting Subdomains**: Important to your business but not a differentiator (e.g., inventory management)
-- **Generic Subdomains**: Common business problems with off-the-shelf solutions (e.g., authentication, logging)
+Supporting domains are necessary for your business but don't provide competitive advantage.
 
-![Domain Types Diagram](../../.vuepress/public/images/domain-types.png)
+**Characteristics:**
+- Important to operations
+- Specific to your business
+- May be implemented in-house or outsourced
+- Deserves some investment, but less than core
 
-### Ubiquitous Language
+**Examples:**
+- Customer management for an e-commerce site
+- Reporting for a financial service
+- Content management for a media company
 
-Ubiquitous language is a shared vocabulary between domain experts and developers that's used consistently throughout code, documentation, and conversation. It helps ensure everyone has the same understanding of the domain concepts.
+### Generic Subdomains
 
-For more details, see our [Ubiquitous Language](./ubiquitous-language.md) guide.
+Generic subdomains represent well-understood, common business problems.
 
-## Strategic Design Process
+**Characteristics:**
+- Common across many businesses
+- Well-understood solutions exist
+- Best implemented using off-the-shelf solutions
+- Low investment priority
 
-### 1. Conduct Domain Discovery Workshops
+**Examples:**
+- Authentication and authorization
+- Email sending
+- Payment processing
+- Calendar management
 
-Domain discovery workshops bring together domain experts and developers to explore the domain. Techniques include:
+### Allocation Matrix
 
-- **Event Storming**: Map out business processes using sticky notes to represent domain events, commands, and more
-- **Domain Storytelling**: Have domain experts tell stories about their work
-- **Example Mapping**: Create examples of business scenarios and rules
-- **Concept Mapping**: Visualize relationships between domain concepts
+Combine domain types with investment strategies:
 
-These workshops help you:
-- Understand the domain from the experts' perspective
-- Identify bounded contexts
-- Begin creating a ubiquitous language
-- Discover business rules and processes
+| Domain Type | Build Strategy | Documentation | Testing | Refactoring |
+|-------------|----------------|---------------|---------|-------------|
+| Core        | In-house, best developers | Extensive | Comprehensive | Frequent |
+| Supporting  | In-house or outsource | Good | Solid coverage | As needed |
+| Generic     | Buy or open source | Minimal | Basic | Rarely |
 
-### 2. Draw Context Maps
+## Tools and Techniques
 
-Once you've identified bounded contexts:
+Let's explore practical tools for applying strategic DDD:
 
-1. List all bounded contexts in your system
-2. Identify the relationships between them
-3. Document the communication patterns and integrations
-4. Visualize this as a context map
-5. Identify potential issues or friction points
+### 1. Event Storming
 
-### 3. Prioritize the Core Domain
+Event storming is a workshop technique for discovering domain knowledge:
 
-After mapping the domain:
+1. **Gather diverse participants** (developers, domain experts, product owners)
+2. **Use a large modeling space** (wall with butcher paper or digital whiteboard)
+3. **Start with domain events** (orange sticky notes for "things that happen")
+4. **Add commands** that trigger events (blue sticky notes)
+5. **Identify aggregates** that handle commands and emit events (yellow sticky notes)
+6. **Look for bounded context boundaries** where language or concepts shift
 
-1. Classify areas as core, supporting, or generic
-2. Focus resources on the core domain
-3. Consider buying or outsourcing solutions for generic subdomains
-4. Document your decisions and reasoning
+<!-- DIAGRAM: Simple illustration of event storming wall with colored sticky notes representing different elements -->
 
-### 4. Define Integration Strategies
+**Resources:**
+- [Event Storming Cheat Sheet](https://www.eventstorming.com/)
+- [Miro Event Storming Template](https://miro.com/templates/event-storming/)
 
-For each relationship between contexts:
+### 2. Domain Storytelling
 
-1. Choose appropriate integration patterns (APIs, events, shared database, etc.)
-2. Design anticorruption layers where needed
-3. Define contracts and team responsibilities
-4. Create mechanisms for handling conflicts or changes
+Domain storytelling uses pictographic language to tell stories about the domain:
+
+1. **Gather domain experts** who know the processes
+2. **Set up symbols** for actors, work objects, and activities
+3. **Record stories** as domain experts narrate processes
+4. **Draw the flow** visually using the symbols
+5. **Look for bounded contexts** where terminology changes
+
+**Resources:**
+- [Domain Storytelling Website](https://domainstorytelling.org/)
+- [Online Domain Storytelling Tool](https://egon.io/)
+
+### 3. Context Mapping Workshop
+
+A workshop focused specifically on mapping relationships:
+
+1. **List all known contexts** on sticky notes
+2. **Arrange contexts** spatially based on relevance
+3. **Draw connections** between related contexts
+4. **Label relationships** with context mapping patterns
+5. **Identify integration challenges** at boundaries
+6. **Discover missing contexts** through the process
+
+### 4. Domain Message Flow Modeling
+
+This technique focuses on the messages that flow between contexts:
+
+1. **Identify key business processes** that span multiple contexts
+2. **List the sequence of messages** that flow between contexts
+3. **Specify the content** of each message
+4. **Validate translations** at context boundaries
+5. **Look for process inefficiencies** and coupling issues
 
 ## Strategic Design in Practice
 
-### Example: E-commerce System
+### Common Pitfalls
 
-Let's explore how strategic design might work for an e-commerce company:
+1. **Too many bounded contexts** - Creates excessive integration overhead
+2. **Too few bounded contexts** - Results in a "big ball of mud"
+3. **Ignoring team boundaries** - Organizational structure influences effective boundaries
+4. **Overemphasizing technical concerns** - Business concepts should drive boundaries
+5. **Neglecting core domain** - Failing to identify and invest in what matters most
 
-#### Bounded Contexts
-- **Product Catalog**: Managing product information, categories, attributes
-- **Order Processing**: Handling orders, payments, and fulfillment
-- **Customer Management**: Customer accounts, preferences, and history
-- **Inventory Management**: Stock levels, warehouses, and procurement
-- **Shipping & Delivery**: Shipping options, carriers, and tracking
-- **Reviews & Ratings**: Product reviews, ratings, and Q&A
-- **Marketing & Promotions**: Discounts, campaigns, and recommendations
+### Signs of Success
 
-#### Core Domain Analysis
-- **Core**: Personalized product recommendations (key differentiator)
-- **Supporting**: Order processing, product catalog
-- **Generic**: Authentication, email notifications, payment processing
+1. **Team autonomy** - Teams can work independently within their contexts
+2. **Clear translations** - Boundary crossing points have explicit translations
+3. **Evolving core domain** - Core domain continuously improves with business focus
+4. **Stable interfaces** - Context relationships remain stable even as implementations change
+5. **Reduced coordination overhead** - Less need for cross-team synchronization
 
-#### Sample Context Map
+## Summary and Next Steps
 
-![E-commerce Context Map Example](../../.vuepress/public/images/ecommerce-context-map-example.png)
+Strategic design helps you organize your system according to business realities, set boundaries, and prioritize investments. To get started:
 
-#### Integration Examples
-- **Product Catalog � Order Processing**: Product Catalog publishes an Open Host Service API for order processing to look up product details
-- **Order Processing � Inventory**: Partnership relationship with shared events for inventory updates
-- **Order Processing � Payment**: Order Processing conforms to the Payment gateway's requirements
-- **Customer Management � All Other Contexts**: Customer Management offers a shared view of customer data through a Published Language (JSON schema)
+1. **Identify bounded contexts** in your system
+2. **Map the relationships** between them
+3. **Classify domains** as core, supporting, or generic
+4. **Set appropriate investment levels** for each area
+5. **Implement bounded contexts** with clear boundaries
 
-## Common Challenges in Strategic Design
+Next, learn about [Tactical Design](./tactical-design.md) to implement the patterns within each bounded context, turning strategic insights into code.
 
-### Identifying Bounded Context Boundaries
+## Recommended Resources
 
-- **Problem**: It's not always clear where to draw the line between contexts
-- **Solution**: Focus on language changes, team boundaries, and data ownership; refine boundaries as you learn more
+- **Books:**
+    - "Domain-Driven Design" by Eric Evans
+    - "Strategic Monoliths and Microservices" by Vaughn Vernon
 
-### Managing Changes Across Contexts
+- **Tools:**
+    - [Miro](https://miro.com/) for collaborative modeling
+    - [EventStorming.com](https://www.eventstorming.com/) for event storming resources
+    - [Context Mapper](https://contextmapper.org/) for DSL-based context mapping
 
-- **Problem**: Changes in one context can impact others
-- **Solution**: Clear contracts, versioning, and communication channels between teams
-
-### Organizational Alignment
-
-- **Problem**: Conway's Law - software structure tends to mirror org structure
-- **Solution**: Align teams with bounded contexts; use architecture team to coordinate
-
-### Legacy Systems Integration
-
-- **Problem**: Existing systems often don't follow DDD principles
-- **Solution**: Use anticorruption layers to protect new models from legacy concepts
-
-## Best Practices
-
-1. **Start with business value**: Focus on areas most important to the business
-2. **Embrace refinement**: Your understanding will evolve, so refine your models over time
-3. **Map to team structure**: Align bounded contexts with team responsibilities
-4. **Document context boundaries**: Make context maps and integration points explicit
-5. **Invest in the core domain**: Put your best people and most effort into your competitive advantage
-6. **Keep learning**: Regularly revisit your understanding with domain experts
-
-## Next Steps
-
-Now that you understand the strategic aspects of DDD, learn about [Tactical Design](./tactical-design.md) - the implementation patterns that help you build your domain model within each bounded context.
-
-You can also dive deeper into [Ubiquitous Language](./ubiquitous-language.md), a key concept that connects strategic and tactical design.
+- **Communities:**
+    - [DDD Community on Discord](https://discord.gg/eQ8TcAM)
+    - [DDD-CQRS-ES Slack](https://ddd-cqrs-es.slack.com/)

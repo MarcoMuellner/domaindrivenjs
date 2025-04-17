@@ -1,75 +1,74 @@
 # Understanding Value Objects
 
-Value objects are a fundamental building block in Domain-Driven Design. They represent concepts in your domain that are defined by their attributes rather than by an identity.
+Value objects are one of the fundamental building blocks in Domain-Driven Design. They represent concepts in your domain that are defined by their attributes rather than by an identity. Understanding value objects is essential for building rich, expressive domain models.
+
+<!-- DIAGRAM: Visual comparison of Value Objects vs Entities, showing how multiple references to a value object with same properties are considered equal, while entities with same properties but different IDs are different -->
 
 ## What is a Value Object?
 
-<!-- DIAGRAM: Comparison between Value Objects (defined by attributes) and Entities (defined by identity) with examples of each and how equality works differently -->
+A value object is an immutable object that represents a descriptive aspect of the domain with no conceptual identity.
 
-A value object:
-- Is defined completely by its **attributes** (not by an identity)
-- Is **immutable** - once created, it cannot be changed
-- Provides **equality based on attributes** - two value objects with the same attributes are considered equal
-- Encapsulates related **validation and behavior**
-- Represents a **cohesive concept** in your domain
+### Key Characteristics:
 
-### Real-World Examples
+- **Defined by attributes** - Its identity is based on the combination of all its attribute values
+- **Immutable** - Once created, it cannot be changed
+- **Equality by value** - Two value objects with the same attributes are considered equal
+- **Self-validating** - Ensures its values are always valid
+- **Conceptual whole** - Represents a complete concept, not just a primitive value
 
-Think of value objects as concepts that answer the question "what" rather than "which":
+Think of a value object as answering the question "what" rather than "which one."
 
-| Domain | Value Objects Examples |
-|--------|------------------------|
-| E-commerce | Money, Address, ProductCode, EmailAddress |
-| Financial | Money, InterestRate, DateRange, Account Number |
-| Transportation | Route, TimeSlot, Distance, Location |
-| Healthcare | BloodPressure, Temperature, DosageAmount |
+### Value Objects vs. Primitives
 
-### Value Objects vs. Entities
-
-The crucial distinction between value objects and entities is that **value objects have no identity**. Consider these examples:
-
-- A $5 bill is a value object - if you exchange it for another $5 bill, you don't care which specific one you have
-- A car is an entity - even if two cars are identical in all respects, they're still different cars with unique identities
-
-Value objects can be freely replaced with equivalent objects, while entities maintain their identity even as their attributes change.
-
-## Why Use Value Objects?
-
-Value objects offer several important benefits:
-
-1. **Safer code** - Immutability prevents unexpected side effects
-2. **Domain expressiveness** - They capture important concepts in your business domain
-3. **Encapsulated validation** - They ensure values are always valid
-4. **Simplified equality** - No need to worry about object references
-5. **Reduced primitive obsession** - Replace primitive types with richer domain concepts
-
-For example, instead of representing money as a raw number:
+Many developers default to using primitive types (strings, numbers, booleans) to represent domain concepts. This leads to what's called "primitive obsession" - a code smell where primitives are used for domain concepts that deserve their own type.
 
 ```javascript
-// Without value objects - using primitives
+// Using primitives (primitive obsession)
 function applyDiscount(price, discountPercent) {
-  return price * (1 - discountPercent);
+  return price * (1 - discountPercent / 100);
 }
 
 // Problems:
 // - What currency is the price in?
-// - Is discountPercent a decimal (0.2) or a percentage (20)?
+// - Is the discount percent 0.2 or 20?
 // - Nothing prevents negative results
+// - No validation of inputs
 ```
 
-With value objects, intentions become clear:
+With value objects, your code becomes clearer and safer:
 
 ```javascript
-// With value objects
-function applyDiscount(price, discount) {
-  return price.applyPercentageDiscount(discount);
+// Using value objects
+function applyDiscount(price, discountPercentage) {
+  return price.applyPercentage(discountPercentage);
 }
 
 // Benefits:
-// - Price includes currency
-// - Percentage is a proper concept
-// - Validation ensures no invalid operations
+// - Price knows its own currency
+// - DiscountPercentage validates it's in a valid range
+// - Price ensures result is never negative
+// - Everything is validated
 ```
+
+### Value Objects vs. Entities
+
+| Characteristic | Value Objects | Entities |
+|----------------|---------------|----------|
+| Identity | Based on all attributes | Based on ID/unique identifier |
+| Mutability | Immutable | Can change over time |
+| Equality | Equal if all attributes match | Equal if IDs match |
+| Example | Money, Date Range, Address | Person, Order, Product |
+| Question Answered | "What" | "Which one" |
+
+## Value Objects in the Real World
+
+Value objects are everywhere in the real world:
+
+- **Money** - $5 is $5, regardless of which specific bill you have
+- **Measurements** - 1 kg is 1 kg, no matter which scale you use
+- **Colors** - Red #FF0000 is the same regardless of where it appears
+- **Addresses** - Same street, city, and postal code is the same address
+- **Time Periods** - A 2-hour duration is the same regardless of when it occurs
 
 ## Creating Value Objects with Domainify
 
@@ -108,14 +107,6 @@ const Money = valueObject({
         style: 'currency',
         currency: this.currency
       }).format(this.amount);
-    },
-    
-    equals(other) {
-      if (!(other instanceof Object) || other.constructor !== Object) {
-        return false;
-      }
-      return this.amount === other.amount && 
-             this.currency === other.currency;
     }
   }
 });
@@ -161,40 +152,97 @@ console.log(price.format()); // Original is unchanged: "$29.99"
 
 Domainify provides several built-in value object types for common use cases:
 
+### String Value Objects
+
 ```javascript
 import {
   String,
-  NonEmptyString,
+  NonEmptyString
+} from 'domainify';
+
+// Basic string
+const description = String.create("Product description");
+
+// Non-empty string with validation
+const name = NonEmptyString.create("Product name");
+
+// Will throw error:
+try {
+  NonEmptyString.create("");
+} catch (error) {
+  console.error(error.message); 
+  // "Invalid NonEmptyString: String must contain at least 1 character(s)"
+}
+
+// Using string methods
+const lowercase = name.toLower();
+const truncated = description.truncate(10); // "Product de..."
+```
+
+### Number Value Objects
+
+```javascript
+import {
   Number,
   IntegerNumber,
   PositiveNumber,
-  NonNegativeNumber,
-  Identifier
+  NonNegativeNumber
 } from 'domainify';
 
-// String value objects
-const description = String.create("Product description");
-const name = NonEmptyString.create("Product name");
+// Basic number
+const genericNumber = Number.create(42);
 
-// Number value objects
-const price = PositiveNumber.create(29.99);
+// Integer number (no fractions)
 const quantity = IntegerNumber.create(5);
+
+// Positive number (greater than zero)
+const price = PositiveNumber.create(29.99);
+
+// Non-negative number (zero or greater)
 const discount = NonNegativeNumber.create(0.1);
 
-// Identifier for IDs
-const orderId = Identifier.create("order-123");
-const uuidId = Identifier.uuid().create("123e4567-e89b-12d3-a456-426614174000");
+// Using number methods
+const doubled = price.multiply(2);
+const rounded = price.round(0); // 30
+const formatted = price.format('en-US', { 
+  style: 'currency', 
+  currency: 'USD' 
+}); // "$29.99"
 ```
 
-## Primitive vs. Complex Value Objects
-
-There are two main types of value objects:
-
-### Primitive Value Objects
-
-These wrap a single primitive value with validation and behavior:
+### Identifier Value Objects
 
 ```javascript
+import { Identifier } from 'domainify';
+
+// Basic identifier
+const id = Identifier.create("user-123");
+
+// UUID-specific identifier
+const UUIDType = Identifier.uuid();
+const uuid = UUIDType.create("123e4567-e89b-12d3-a456-426614174000");
+
+// Generate a new UUID
+const newId = Identifier.generateUUID();
+
+// Numeric identifier
+const NumericId = Identifier.numeric({ min: 1 });
+const orderId = NumericId.create(1001);
+const nextId = orderId.next(); // 1002
+```
+
+## Creating Custom Value Objects
+
+Let's explore how to create custom value objects for your domain concepts:
+
+### Simple Domain Concepts
+
+For simple concepts that wrap a single value:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
 const Email = valueObject({
   name: 'Email',
   schema: z.string().email().toLowerCase(),
@@ -204,188 +252,31 @@ const Email = valueObject({
     },
     getUsername() {
       return this.split('@')[0];
-    }
-  },
-  overrideIsPrimitive: true // Tells Domainify this wraps a primitive
-});
-
-const email = Email.create('user@example.com');
-console.log(email.getDomain()); // "example.com"
-```
-
-### Complex Value Objects
-
-These combine multiple values into a cohesive concept:
-
-```javascript
-const Address = valueObject({
-  name: 'Address',
-  schema: z.object({
-    street: z.string(),
-    city: z.string(),
-    state: z.string().length(2),
-    zipCode: z.string().regex(/^\d{5}(-\d{4})?$/)
-  }),
-  methods: {
-    format() {
-      return `${this.street}, ${this.city}, ${this.state} ${this.zipCode}`;
     },
-    isInState(stateCode) {
-      return this.state === stateCode.toUpperCase();
+    isBusinessEmail() {
+      const domain = this.getDomain();
+      return !domain.includes('gmail.com') && 
+             !domain.includes('hotmail.com') &&
+             !domain.includes('yahoo.com');
     }
   }
 });
 
-const address = Address.create({
-  street: '123 Main St',
-  city: 'Anytown',
-  state: 'CA',
-  zipCode: '12345'
-});
+// Usage
+const email = Email.create('User@Example.com');
+console.log(email.toString()); // "user@example.com" (normalized to lowercase)
+console.log(email.getDomain()); // "example.com"
+console.log(email.isBusinessEmail()); // true
 ```
 
-## Extending Value Objects
+### Complex Domain Concepts
 
-You can extend existing value objects to create more specialized types:
-
-```javascript
-const PhoneNumber = String.extend({
-  name: 'PhoneNumber',
-  schema: (baseSchema) => baseSchema.regex(/^\+?[1-9]\d{1,14}$/),
-  methods: {
-    formatNational() {
-      // Format implementation for national display
-      // Example: (555) 123-4567
-      const digits = this.replace(/\D/g, '');
-      return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
-    }
-  }
-});
-
-const phoneNumber = PhoneNumber.create('+12025550179');
-console.log(phoneNumber.formatNational()); // "(202) 555-0179"
-```
-
-## Integrating with Entities and Aggregates
-
-Value objects are often used as properties within entities and aggregates:
-
-```javascript
-const Product = entity({
-  name: 'Product',
-  schema: z.object({
-    id: z.string().uuid(),
-    name: NonEmptyString.schema, // Use the value object schema
-    price: Money.schema,         // Use the value object schema
-    description: String.schema.optional()
-  }),
-  identity: 'id',
-  methods: {
-    // Product methods...
-  }
-});
-
-// Creating an entity with value objects
-const product = Product.create({
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  name: NonEmptyString.create('Premium Widget'),
-  price: Money.create({ amount: 49.99, currency: 'USD' }),
-  description: String.create('A high-quality widget for all your needs')
-});
-```
-
-## Value Object Schema Helpers
-
-Domainify provides schema helpers to make it easier to use value objects in your entity schemas:
+For concepts that combine multiple values:
 
 ```javascript
 import { z } from 'zod';
-import { valueObjectSchema, specificValueObjectSchema } from 'domainify';
+import { valueObject } from 'domainify';
 
-// Create a schema that accepts any value object
-const genericSchema = z.object({
-  id: z.string(),
-  anyValueObj: valueObjectSchema()
-});
-
-// Create a schema that accepts a specific value object type
-const specificSchema = z.object({
-  id: z.string(),
-  email: specificValueObjectSchema(Email),
-  money: specificValueObjectSchema(Money)
-});
-```
-
-## Validation and Error Handling
-
-Value objects automatically validate their data at creation time:
-
-```javascript
-try {
-  const invalidMoney = Money.create({ amount: -10, currency: 'USD' });
-} catch (error) {
-  console.error(error.message); 
-  // "Invalid Money: amount must be greater than or equal to 0"
-}
-
-try {
-  const invalidEmail = Email.create('not-an-email');
-} catch (error) {
-  console.error(error.message);
-  // "Invalid Email: Invalid email"
-}
-```
-
-The `ValidationError` includes details about what failed and why, making it easier to understand and fix issues.
-
-## Best Practices
-
-1. **Keep value objects focused** - Each value object should represent a single concept
-2. **Make operations return new instances** - Never modify an existing value object
-3. **Use descriptive method names** - Methods should clearly express their intent
-4. **Validate thoroughly** - Add all relevant validation in the schema
-5. **Consider performance** - For high-frequency operations, be mindful of object creation costs
-6. **Use composition** - Compose complex value objects from simpler ones
-7. **Don't leak domain knowledge** - Keep domain logic inside the value object
-8. **Use factory methods** for complex creation scenarios
-9. **Create specific value objects** rather than reusing generic ones
-10. **Unit test value objects** thoroughly, including edge cases
-
-## Common Value Object Patterns
-
-### Measurements with Units
-
-```javascript
-const Temperature = valueObject({
-  name: 'Temperature',
-  schema: z.object({
-    value: z.number(),
-    unit: z.enum(['C', 'F', 'K'])
-  }),
-  methods: {
-    toCelsius() {
-      if (this.unit === 'C') return this;
-      if (this.unit === 'F') {
-        return Temperature.create({
-          value: (this.value - 32) * 5/9,
-          unit: 'C'
-        });
-      }
-      if (this.unit === 'K') {
-        return Temperature.create({
-          value: this.value - 273.15,
-          unit: 'C'
-        });
-      }
-    },
-    // Other conversion methods...
-  }
-});
-```
-
-### Date Ranges
-
-```javascript
 const DateRange = valueObject({
   name: 'DateRange',
   schema: z.object({
@@ -398,37 +289,699 @@ const DateRange = valueObject({
     durationInDays() {
       return Math.ceil((this.end - this.start) / (1000 * 60 * 60 * 24));
     },
+    
     includes(date) {
       return date >= this.start && date <= this.end;
     },
+    
     overlaps(other) {
       return this.start <= other.end && this.end >= other.start;
+    },
+    
+    extend(days) {
+      const newEnd = new Date(this.end);
+      newEnd.setDate(newEnd.getDate() + days);
+      
+      return DateRange.create({
+        start: this.start,
+        end: newEnd
+      });
     }
   }
 });
+
+// Usage
+const bookingRange = DateRange.create({
+  start: new Date('2023-06-01'),
+  end: new Date('2023-06-07')
+});
+
+console.log(bookingRange.durationInDays()); // 7
+console.log(bookingRange.includes(new Date('2023-06-03'))); // true
+
+const otherRange = DateRange.create({
+  start: new Date('2023-06-05'),
+  end: new Date('2023-06-10')
+});
+
+console.log(bookingRange.overlaps(otherRange)); // true
 ```
 
-### Composite Identifiers
+## Extending Value Objects
+
+You can extend existing value objects to create more specialized versions:
 
 ```javascript
-const OrderLineItemId = valueObject({
-  name: 'OrderLineItemId',
+import { NonEmptyString } from 'domainify';
+
+// Extend NonEmptyString to create a specialized value object
+const ProductName = NonEmptyString.extend({
+  name: 'ProductName',
+  schema: (baseSchema) => baseSchema.max(100),
+  methods: {
+    toSEOSlug() {
+      return this.toString()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+  }
+});
+
+// Usage
+const name = ProductName.create('Professional Mechanical Keyboard (RGB Backlit)');
+console.log(name.toSEOSlug()); // "professional-mechanical-keyboard-rgb-backlit"
+
+// This will throw error due to length constraint
+try {
+  ProductName.create('This product name is way too long and exceeds the maximum allowed length of one hundred characters which will cause validation to fail');
+} catch (error) {
+  console.error(error.message); 
+  // "Invalid ProductName: String must contain at most 100 character(s)"
+}
+```
+
+## Composing Value Objects
+
+Complex domain concepts can be composed of other value objects:
+
+```javascript
+import { z } from 'zod';
+import { valueObject, Email, NonEmptyString } from 'domainify';
+
+// First, define component value objects
+const PhoneNumber = valueObject({
+  name: 'PhoneNumber',
+  schema: z.string().regex(/^\+?[1-9]\d{1,14}$/),
+  methods: {
+    getCountryCode() {
+      if (this.startsWith('+')) {
+        return this.split(' ')[0];
+      }
+      return null;
+    },
+    
+    formatNational() {
+      // Just an example formatter
+      const digits = this.replace(/\D/g, '');
+      if (digits.length === 10) {
+        return `(${digits.substring(0,3)}) ${digits.substring(3,6)}-${digits.substring(6)}`;
+      }
+      return this.toString();
+    }
+  }
+});
+
+// Now compose them into a more complex value object
+const ContactInfo = valueObject({
+  name: 'ContactInfo',
   schema: z.object({
-    orderId: z.string().uuid(),
-    lineItemNumber: z.number().int().positive()
+    email: Email.schema,
+    name: NonEmptyString.schema,
+    phone: PhoneNumber.schema.optional()
   }),
   methods: {
-    toString() {
-      return `${this.orderId}-${this.lineItemNumber}`;
+    hasPhone() {
+      return this.phone !== undefined;
+    },
+    
+    withNewEmail(email) {
+      return ContactInfo.create({
+        ...this,
+        email: Email.create(email)
+      });
+    }
+  }
+});
+
+// Usage
+const contact = ContactInfo.create({
+  email: Email.create('john@example.com'),
+  name: NonEmptyString.create('John Doe'),
+  phone: PhoneNumber.create('+1 555-123-4567')
+});
+
+console.log(contact.email.getDomain()); // "example.com"
+console.log(contact.hasPhone()); // true
+console.log(contact.phone.formatNational()); // "(555) 123-4567"
+
+// Create a new contact info with updated email
+const updatedContact = contact.withNewEmail('john.doe@company.com');
+```
+
+## Value Objects for Domain Rules
+
+Value objects can encapsulate business rules and constraints:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const PasswordStrength = valueObject({
+  name: 'PasswordStrength',
+  schema: z.enum(['WEAK', 'MEDIUM', 'STRONG']),
+  methods: {
+    isAcceptable() {
+      return this !== 'WEAK';
+    },
+    
+    requiresAdditionalFactors() {
+      return this === 'MEDIUM';
+    }
+  }
+});
+
+const Password = valueObject({
+  name: 'Password',
+  schema: z.string().min(8),
+  methods: {
+    getStrength() {
+      let score = 0;
+      
+      // Length check
+      if (this.length >= 12) score += 2;
+      else if (this.length >= 10) score += 1;
+      
+      // Complexity checks
+      if (/[A-Z]/.test(this)) score += 1;
+      if (/[a-z]/.test(this)) score += 1;
+      if (/[0-9]/.test(this)) score += 1;
+      if (/[^A-Za-z0-9]/.test(this)) score += 2;
+      
+      // Determine strength
+      if (score >= 5) return PasswordStrength.create('STRONG');
+      if (score >= 3) return PasswordStrength.create('MEDIUM');
+      return PasswordStrength.create('WEAK');
+    },
+    
+    isAcceptableForRegistration() {
+      return this.getStrength().isAcceptable();
+    }
+  }
+});
+
+// Usage
+const password = Password.create('P@ssw0rd');
+const strength = password.getStrength();
+
+console.log(strength.toString()); // "MEDIUM"
+console.log(strength.isAcceptable()); // true
+console.log(strength.requiresAdditionalFactors()); // true
+
+const strongPassword = Password.create('Compl3x!P@ssw0rd');
+console.log(strongPassword.getStrength().toString()); // "STRONG"
+```
+
+## Value Objects in a Domain Model
+
+Value objects work together with entities and other DDD building blocks in your domain model:
+
+```javascript
+import { z } from 'zod';
+import { valueObject, entity } from 'domainify';
+
+// Value objects
+const Email = valueObject({
+  name: 'Email',
+  schema: z.string().email().toLowerCase(),
+  // methods...
+});
+
+const Money = valueObject({
+  name: 'Money',
+  schema: z.object({
+    amount: z.number().nonnegative(),
+    currency: z.string().length(3)
+  }),
+  // methods...
+});
+
+// Entity using value objects
+const Customer = entity({
+  name: 'Customer',
+  schema: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    email: Email.schema,
+    creditBalance: Money.schema
+  }),
+  identity: 'id',
+  methods: {
+    updateEmail(newEmail) {
+      return Customer.update(this, { email: newEmail });
+    },
+    
+    addCredit(amount) {
+      if (amount.currency !== this.creditBalance.currency) {
+        throw new Error('Currency mismatch');
+      }
+      
+      return Customer.update(this, {
+        creditBalance: this.creditBalance.add(amount)
+      });
+    }
+  }
+});
+
+// Usage
+const customer = Customer.create({
+  id: '123',
+  name: 'Jane Smith',
+  email: Email.create('jane@example.com'),
+  creditBalance: Money.create({ amount: 0, currency: 'USD' })
+});
+
+// Add store credit
+const customerWithCredit = customer.addCredit(
+  Money.create({ amount: 50, currency: 'USD' })
+);
+```
+
+## Special Types of Value Objects
+
+### Collection Value Objects
+
+Collections themselves can be value objects:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const TagList = valueObject({
+  name: 'TagList',
+  schema: z.array(z.string()).max(10),
+  methods: {
+    add(tag) {
+      // If tag already exists, return same list
+      if (this.includes(tag)) return this;
+      
+      // Otherwise create new list with the tag added
+      return TagList.create([...this, tag]);
+    },
+    
+    remove(tag) {
+      return TagList.create(this.filter(t => t !== tag));
+    },
+    
+    asString() {
+      return this.join(', ');
+    },
+    
+    // Override the iterator to make this behave like an array
+    [Symbol.iterator]() {
+      return this.valueOf()[Symbol.iterator]();
+    }
+  }
+});
+
+// Usage
+let tags = TagList.create(['javascript', 'node']);
+tags = tags.add('ddd');
+tags = tags.add('javascript'); // No change, already exists
+console.log(tags.asString()); // "javascript, node, ddd"
+
+// Can iterate like an array
+for (const tag of tags) {
+  console.log(tag);
+}
+```
+
+### Range Value Objects
+
+Range concepts like periods, intervals, or spans:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const NumberRange = valueObject({
+  name: 'NumberRange',
+  schema: z.object({
+    min: z.number(),
+    max: z.number()
+  }).refine(data => data.min <= data.max, {
+    message: 'Min must be less than or equal to max'
+  }),
+  methods: {
+    includes(value) {
+      return value >= this.min && value <= this.max;
+    },
+    
+    overlaps(other) {
+      return this.min <= other.max && this.max >= other.min;
+    },
+    
+    length() {
+      return this.max - this.min;
+    },
+    
+    expand(amount) {
+      return NumberRange.create({
+        min: this.min - amount,
+        max: this.max + amount
+      });
+    }
+  }
+});
+
+// Usage
+const range = NumberRange.create({ min: 10, max: 20 });
+console.log(range.includes(15)); // true
+console.log(range.length()); // 10
+
+const expandedRange = range.expand(5);
+console.log(expandedRange.min); // 5
+console.log(expandedRange.max); // 25
+```
+
+## Value Object Validation with Zod
+
+Domainify uses Zod for validation, giving you a powerful way to define constraints:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const PostalCode = valueObject({
+  name: 'PostalCode',
+  schema: z.string()
+    .trim()
+    .refine(
+      (val) => /^\d{5}(-\d{4})?$/.test(val), 
+      {message: "Invalid US postal code format"}
+    ),
+  methods: {
+    // Methods...
+  }
+});
+
+// Various value validations
+const Person = valueObject({
+  name: 'Person',
+  schema: z.object({
+    name: z.string().min(2).max(100),
+    age: z.number().int().min(0).max(150),
+    email: z.string().email().optional(),
+    // Conditional validation
+    driverLicense: z.string().optional()
+      .refine(
+        (val, ctx) => {
+          // If age < 16, no license should be present
+          if (ctx.parent.age < 16 && val !== undefined) {
+            return false;
+          }
+          return true;
+        },
+        {message: "People under 16 cannot have a driver's license"}
+      )
+  })
+});
+```
+
+## Techniques and Patterns
+
+### Factory Methods for Special Cases
+
+Sometimes you need special ways to create value objects:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const IPAddress = valueObject({
+  name: 'IPAddress',
+  schema: z.string().refine(
+    (val) => /^(\d{1,3}\.){3}\d{1,3}$/.test(val),
+    {message: "Invalid IP address format"}
+  ),
+  methods: {
+    isLocalhost() {
+      return this === '127.0.0.1';
+    }
+  }
+});
+
+// Add factory methods to the value object
+IPAddress.localhost = function() {
+  return IPAddress.create('127.0.0.1');
+};
+
+IPAddress.fromParts = function(a, b, c, d) {
+  if ([a, b, c, d].some(part => part < 0 || part > 255)) {
+    throw new Error('IP address parts must be between 0 and 255');
+  }
+  return IPAddress.create(`${a}.${b}.${c}.${d}`);
+};
+
+// Usage
+const localhost = IPAddress.localhost();
+const customIp = IPAddress.fromParts(192, 168, 1, 1);
+```
+
+### Value Object Serialization
+
+For persisting value objects:
+
+```javascript
+import { z } from 'zod';
+import { valueObject } from 'domainify';
+
+const Color = valueObject({
+  name: 'Color',
+  schema: z.object({
+    red: z.number().int().min(0).max(255),
+    green: z.number().int().min(0).max(255),
+    blue: z.number().int().min(0).max(255),
+    alpha: z.number().min(0).max(1).default(1)
+  }),
+  methods: {
+    toHex() {
+      const r = this.red.toString(16).padStart(2, '0');
+      const g = this.green.toString(16).padStart(2, '0');
+      const b = this.blue.toString(16).padStart(2, '0');
+      return `#${r}${g}${b}`;
+    },
+    
+    toRGBA() {
+      return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+    },
+    
+    // Serialization helper
+    toJSON() {
+      return this.toHex();
+    }
+  }
+});
+
+// Static factory method for creating from hex
+Color.fromHex = function(hex) {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+    throw new Error('Invalid hex color format');
+  }
+  
+  return Color.create({
+    red: parseInt(hex.substring(1, 3), 16),
+    green: parseInt(hex.substring(3, 5), 16),
+    blue: parseInt(hex.substring(5, 7), 16)
+  });
+};
+
+// Usage with serialization
+const color = Color.create({ red: 255, green: 0, blue: 0 });
+console.log(color.toHex()); // "#ff0000"
+
+// Automatic JSON serialization uses the toJSON method
+const data = { primaryColor: color };
+const json = JSON.stringify(data); // {"primaryColor":"#ff0000"}
+
+// Deserialize
+const parsed = JSON.parse(json);
+const reconstructed = Color.fromHex(parsed.primaryColor);
+```
+
+### Null Object Pattern
+
+Create default "null" values with defined behavior:
+
+```javascript
+import { valueObject } from 'domainify';
+
+const Discount = valueObject({
+  name: 'Discount',
+  schema: z.object({
+    percentage: z.number().min(0).max(100),
+    name: z.string(),
+    isActive: z.boolean().default(true)
+  }),
+  methods: {
+    apply(amount) {
+      if (!this.isActive) return amount;
+      return amount * (1 - this.percentage / 100);
+    }
+  }
+});
+
+// Add a "no discount" factory method
+Discount.none = function() {
+  return Discount.create({
+    percentage: 0,
+    name: 'No Discount',
+    isActive: true
+  });
+};
+
+// Usage
+function calculatePrice(basePrice, discount = Discount.none()) {
+  return discount.apply(basePrice);
+}
+
+const regularPrice = calculatePrice(100); // 100
+const salePrice = calculatePrice(100, Discount.create({
+  percentage: 20,
+  name: '20% Off Sale'
+})); // 80
+```
+
+## Best Practices for Value Objects
+
+1. **Make them truly immutable** - Value objects should never change after creation
+2. **Keep them focused** - Each value object should represent one concept
+3. **Express domain rules** - Encapsulate validation and behaviors related to the concept
+4. **Use value objects for all domain values** - Don't mix primitives and value objects for the same concept
+5. **Return new instances from methods** - All operations should return new value objects
+6. **Name operations using domain language** - Methods should reflect domain terminology
+7. **Validate thoroughly** - Define comprehensive validation rules to ensure valid state
+8. **Consider creating collections of value objects** - Collections with domain meaning can be value objects
+9. **Use factory methods for special cases** - Provide named constructors for common instances
+10. **Document domain rules** - Value objects should make domain rules explicit
+
+## Anti-patterns to Avoid
+
+### Mutable Value Objects
+
+```javascript
+// ANTI-PATTERN: Mutable value object
+class Color {
+  constructor(r, g, b) {
+    this.red = r;
+    this.green = g;
+    this.blue = b;
+  }
+  
+  darken() {
+    // Directly modifies the object!
+    this.red = Math.max(0, this.red - 20);
+    this.green = Math.max(0, this.green - 20);
+    this.blue = Math.max(0, this.blue - 20);
+    return this;
+  }
+}
+
+// BETTER: Immutable value object
+const Color = valueObject({
+  name: 'Color',
+  schema: z.object({
+    red: z.number().int().min(0).max(255),
+    green: z.number().int().min(0).max(255),
+    blue: z.number().int().min(0).max(255)
+  }),
+  methods: {
+    darken() {
+      return Color.create({
+        red: Math.max(0, this.red - 20),
+        green: Math.max(0, this.green - 20),
+        blue: Math.max(0, this.blue - 20)
+      });
     }
   }
 });
 ```
+
+### Missing Validation
+
+```javascript
+// ANTI-PATTERN: Missing validation
+const Email = valueObject({
+  name: 'Email',
+  schema: z.string(), // No validation!
+  methods: {
+    getDomain() {
+      // Might throw error if not a valid email
+      return this.split('@')[1];
+    }
+  }
+});
+
+// BETTER: With validation
+const Email = valueObject({
+  name: 'Email',
+  schema: z.string().email().toLowerCase(),
+  methods: {
+    getDomain() {
+      return this.split('@')[1];
+    }
+  }
+});
+```
+
+### Overly Complex Value Objects
+
+```javascript
+// ANTI-PATTERN: Too many responsibilities
+const User = valueObject({
+  name: 'User',
+  schema: z.object({
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string(),
+    loginAttempts: z.number(),
+    lastLogin: z.date(),
+    // Many more fields...
+  }),
+  methods: {
+    // Auth methods
+    checkPassword() { /*...*/ },
+    incrementLoginAttempts() { /*...*/ },
+    // Profile methods
+    getFullName() { /*...*/ },
+    // Many more methods...
+  }
+});
+
+// BETTER: Split into focused value objects
+const Email = valueObject({
+  name: 'Email',
+  schema: z.string().email().toLowerCase(),
+  methods: { /*...*/ }
+});
+
+const Password = valueObject({
+  name: 'Password',
+  schema: z.string().min(8),
+  methods: { 
+    isMatch(plaintext) { /*...*/ }
+  }
+});
+
+// And then use an entity for User with identity
+```
+
+## Summary
+
+Value objects are a powerful tool for modeling your domain concepts with precision and clarity. By using value objects instead of primitive types, you:
+
+1. **Make domain concepts explicit** in your code
+2. **Encapsulate validation and behavior** specific to those concepts
+3. **Eliminate entire categories of bugs** through immutability
+4. **Improve code readability** by expressing domain concepts directly
+
+With Domainify's composable, immutable value objects, you can build rich domain models that express complex business rules clearly and concisely.
 
 ## Next Steps
 
-Now that you understand value objects, you can:
-
-- Learn about [Entities](/guide/core/entities.html), which have identity that persists through state changes
-- Explore [Aggregates](/guide/core/aggregates.html), which group related entities and value objects
-- Check out [Domain Events](/guide/core/domain-events.html) to model significant changes in your domain
+Now that you understand value objects, explore these related concepts:
+- [Entities](./entities.md) for concepts with identity that changes over time
+- [Aggregates](./aggregates.md) for clusters of related objects treated as a unit
+- [Domain Events](./domain-events.md) for modeling significant occurrences
+- [Specifications](./specifications.md) for reusable business rules
