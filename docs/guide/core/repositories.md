@@ -4,20 +4,49 @@ Repositories are a critical pattern in Domain-Driven Design that provides a clea
 
 ## What is a Repository?
 
-A repository:
+A repository is a collection-like interface that mediates between the domain model and data mapping layers, providing an illusion of an in-memory collection of domain objects. Think of it as a specialized "bookshelf" where your domain objects are stored and retrieved.
+
+Key characteristics:
 - Provides a collection-like interface for accessing domain objects
-- Abstracts away data storage and retrieval mechanisms
+- Abstracts away data storage and retrieval mechanisms 
 - Mediates between the domain and data mapping layers
 - Enables testability and flexibility in your domain model
 
 ## Why Use Repositories?
 
 Repositories offer several benefits:
-- **Separation of concerns**: Decouple domain logic from data access
+
+- **Separation of concerns**: Your domain logic remains pure and focused, without being entangled with database access code
 - **Improved testability**: Easily swap real storage with in-memory implementations for testing
-- **Simplified domain code**: Domain code works with repositories, not data access code
-- **Flexibility**: Change storage implementations without affecting domain logic
-- **Query optimization**: Encapsulate complex queries within repository implementations
+- **Simplified domain code**: Domain logic works with repositories, not data access mechanisms
+- **Storage flexibility**: Change database technologies without affecting domain code
+- **Query optimization**: Repositories can optimize queries based on specific storage technologies
+- **Domain focus**: Repositories speak the language of the domain, not the language of the database
+
+## How Repositories Work
+
+Repositories act as a boundary between two very different worlds:
+
+```
+┌─────────────────────┐     ┌───────────────┐     ┌─────────────────────┐
+│                     │     │               │     │                     │
+│   Domain Model      │◄────┤  Repository   ├────►│   Data Storage      │
+│  (Entities, etc.)   │     │               │     │  (SQL, NoSQL, etc.) │
+│                     │     │               │     │                     │
+└─────────────────────┘     └───────────────┘     └─────────────────────┘
+```
+
+On one side, the repository accepts and returns domain objects (entities, aggregates). On the other side, it translates these into the data format required by your storage technology.
+
+When a repository saves an object:
+1. It receives a domain object
+2. It maps the object to the storage format (e.g., SQL table rows, document JSON)
+3. It uses the appropriate storage mechanism to persist the data
+
+When a repository retrieves an object:
+1. It queries the storage mechanism
+2. It maps the raw data back into domain objects
+3. It returns fully reconstituted domain objects
 
 ## Creating Repositories with Domainify
 
@@ -64,11 +93,11 @@ Let's break down the components:
 
 1. **`name`**: A descriptive name for your repository
 2. **`entity`**: The entity type this repository will manage
-3. **`methods`**: Custom query and operation methods for this repository
+3. **`methods`**: Custom query and operation methods specific to this repository
 
 ## Repository Adapters
 
-To use a repository, you need to connect it to a storage adapter. Domainify provides adapters for different storage systems:
+A key strength of the repository pattern is its abstraction of storage details through adapters. Domainify provides adapters for different storage systems:
 
 ```javascript
 import { InMemoryAdapter, MongoAdapter, SqliteAdapter } from 'domainify/adapters';
@@ -95,6 +124,8 @@ const sqliteProductRepo = ProductRepository.create(
   })
 );
 ```
+
+Each adapter implements the same interface but handles the specific details of its storage technology. This allows you to switch storage technologies with minimal code changes.
 
 ## Using Repositories
 
@@ -223,6 +254,26 @@ await productRepo.updateMany(
 await productRepo.deleteMany({ expiryDate: { $lt: new Date() } });
 ```
 
+## Working with Specifications
+
+Repositories can work seamlessly with specifications (see [Specifications](./specifications.md)):
+
+```javascript
+// Create a specification
+const InStockSpec = specification({
+  name: 'InStock',
+  isSatisfiedBy: product => product.stockLevel > 0,
+  toQuery: () => ({ stockLevel: { $gt: 0 } })
+});
+
+// Use it with a repository
+const inStockProducts = await productRepo.findMany(InStockSpec);
+
+// Combine specifications
+const FeaturedAndInStock = FeaturedSpec.and(InStockSpec);
+const featuredInStockProducts = await productRepo.findMany(FeaturedAndInStock);
+```
+
 ## Repository Composition
 
 You can compose repositories for more complex operations:
@@ -296,15 +347,28 @@ describe('ProductService', () => {
 });
 ```
 
+## Common Pitfalls
+
+1. **Repository per table**: Creating repositories that match database tables instead of aggregates
+2. **Leaking persistence concerns**: Exposing storage-specific details in the repository interface
+3. **Anemic repositories**: Not providing domain-specific query methods, just basic CRUD
+4. **Fat repositories**: Adding business logic that belongs in domain services
+5. **Inconsistent transaction boundaries**: Not considering aggregate boundaries when designing transactions
+
 ## Best Practices
 
-1. **Repository per aggregate**: Create one repository for each aggregate root
+1. **Repository per aggregate**: Create one repository for each aggregate root, not for every entity
 2. **Keep repositories focused**: Each repository should handle one type of entity
 3. **Abstract storage details**: Don't expose storage-specific code through repositories
 4. **Use dependency injection**: Pass repositories to services that need them
 5. **Optimize for common queries**: Add custom methods for frequently used queries
 6. **Consider caching**: Implement caching strategies for performance-critical repositories
+7. **Respect aggregate boundaries**: Repositories should enforce the consistency boundaries of aggregates
 
 ## Next Steps
 
-Now that you understand repositories, learn about [Domain Events](./domain-events.md) - events that capture significant changes in your domain.
+Now that you understand repositories, you might want to learn about:
+
+- [Specifications](./specifications.md) - Encapsulate query and validation rules
+- [Domain Events](./domain-events.md) - Capture significant changes in your domain
+- [Testing Repositories](../advanced/testing.md#testing-repositories) - Advanced techniques for testing repositories

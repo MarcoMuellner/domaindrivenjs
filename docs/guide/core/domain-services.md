@@ -1,28 +1,82 @@
 # Working with Domain Services
 
-Domain services are an essential tactical pattern in Domain-Driven Design that handles operations that don't naturally fit within a single entity or value object. They represent processes or transformations in your domain that involve multiple domain objects.
+Domain services are an essential tactical pattern in Domain-Driven Design that encapsulates operations that don't naturally fit within entities or value objects. They represent important processes or business rules involving multiple domain objects.
 
-## What are Domain Services?
+## What is a Domain Service?
 
-A domain service:
+A domain service is a stateless component that implements business logic or operations that don't conceptually belong to any single entity or value object. Think of a domain service as a coordinator or process manager that orchestrates interactions between multiple domain objects to achieve a specific business outcome.
+
+Key characteristics:
 - Represents an operation or process in your domain, not a thing
-- Typically orchestrates multiple domain objects to perform business logic
+- Coordinates multiple domain objects to perform business logic
 - Is stateless (doesn't maintain its own internal state between operations)
-- Captures domain concepts that don't fit naturally in entities or value objects
-- Is named using domain terminology and verbs that describe actions
+- Named using verbs rather than nouns (e.g., `TransferFunds` rather than `FundsTransferer`)
+- Implements domain logic that crosses aggregate boundaries
+- Expresses important domain concepts that don't fit naturally in entities or value objects
+
+## Why Use Domain Services?
+
+Domain services offer several benefits:
+
+- **Clear responsibility boundaries**: When logic doesn't naturally belong to a single entity, domain services provide a logical home
+- **Avoids "God objects"**: Prevents entities from accumulating too many responsibilities
+- **Domain-focused design**: Expresses domain concepts and operations explicitly
+- **Preserve encapsulation**: Allows entities and value objects to maintain focused responsibilities
+- **Simplify complex interactions**: Orchestrates multi-step processes involving multiple domain objects
+- **Business rule centralization**: Provides a natural place for cross-entity business rules
 
 ## When to Use Domain Services
 
 You should use a domain service when:
+
 - An operation involves multiple aggregates
-- The operation doesn't conceptually belong to any single entity or value object
+- The operation doesn't conceptually belong to any entity or value object
+- Business rules apply to relationships between different domain objects
 - The behavior represents an important domain process or transformation
-- Business rules apply to the relationship between different domain objects
+- Placing the logic in an entity would violate single responsibility principle
 
 Common examples include:
 - PaymentProcessor (coordinating between Account, Payment, and Transaction)
 - OrderFulfillment (coordinating between Order, Inventory, and Shipping)
 - RiskAssessor (analyzing Customer, Order history, and Payment method)
+
+## How Domain Services Work
+
+Domain services act as coordinators between multiple domain objects:
+
+```
+┌────────────────┐
+│                │
+│  Domain Service│
+│                │
+└───────┬────────┘
+        │
+        │ coordinates
+        │
+        ▼
+┌──────────────────────────────────────┐
+│                                      │
+│  ┌──────────┐    ┌──────────┐        │
+│  │          │    │          │        │
+│  │ Entity A │    │ Entity B │        │
+│  │          │    │          │        │
+│  └──────────┘    └──────────┘        │
+│                                      │
+│  ┌──────────┐    ┌──────────┐        │
+│  │          │    │          │        │
+│  │ Value    │    │ Repository│        │
+│  │ Object   │    │          │        │
+│  └──────────┘    └──────────┘        │
+│                                      │
+└──────────────────────────────────────┘
+```
+
+A domain service:
+1. Receives input parameters (which may include domain objects)
+2. Applies business rules and logic
+3. May use repositories to retrieve or persist domain objects
+4. Coordinates operations across multiple domain objects
+5. Returns results (often modified domain objects)
 
 ## Creating Domain Services with Domainify
 
@@ -81,7 +135,7 @@ Let's break down the components:
 
 ## Using Domain Services
 
-You can use domain services in your application by injecting them where needed:
+Domain services are typically injected into application services or controllers:
 
 ```javascript
 // In an application service or controller
@@ -127,24 +181,25 @@ class AccountController {
 }
 ```
 
+Notice that:
+1. The domain service focuses on core business logic (the transfer rules)
+2. The application service handles transaction concerns, persistence, and input/output mapping
+3. The domain service returns modified domain objects without persisting them
+
 ## Domain Services vs. Application Services
 
-It's important to distinguish domain services from application services:
+Understanding the difference between domain services and application services is crucial for clean DDD architecture:
 
-### Domain Services
-- Part of the domain layer
-- Implement domain logic and business rules
-- Work directly with domain objects
-- Named using domain terminology
-- Can be used by other domain objects or services
-
-### Application Services
-- Part of the application layer
-- Orchestrate use cases and workflows
-- Handle transaction management
-- Convert between domain and DTO objects
-- Manage permissions and security concerns
-- May use one or more domain services
+| Aspect | Domain Service | Application Service |
+|--------|---------------|---------------------|
+| **Layer** | Domain layer | Application layer |
+| **Focus** | Domain logic | Use case orchestration |
+| **Knowledge** | Knows only about domain model | Knows about domain model and other layers |
+| **Responsibilities** | Business rules, domain operations | Transaction management, security, input/output mapping |
+| **State** | Stateless | May track state for use case |
+| **Dependencies** | Other domain objects | Domain services, repositories, infrastructure services |
+| **Named after** | Domain processes | User use cases |
+| **Examples** | `PaymentProcessor`, `ShippingCalculator` | `ProcessOrderUseCase`, `UserRegistrationService` |
 
 ## Types of Domain Services
 
@@ -328,7 +383,7 @@ const InventoryAllocationService = domainService({
 
 ## Domain Services and Dependencies
 
-Domain services may depend on other domain services or repositories:
+Domain services may depend on other domain services:
 
 ```javascript
 const OrderFulfillmentService = domainService({
@@ -455,13 +510,60 @@ describe('FundsTransferService', () => {
 });
 ```
 
+You can also mock dependencies when testing domain services with dependencies:
+
+```javascript
+describe('OrderFulfillmentService', () => {
+  test('should fulfill an order when inventory is available', async () => {
+    // Arrange
+    const order = Order.create({
+      id: 'order-1',
+      status: 'PAID',
+      // other properties...
+    });
+    
+    const mockInventoryService = {
+      allocateInventory: jest.fn().mockResolvedValue({ isComplete: true })
+    };
+    
+    const mockShippingService = {
+      createShipment: jest.fn().mockResolvedValue({ 
+        trackingNumber: 'TRACK123'
+      })
+    };
+    
+    const fulfillmentService = OrderFulfillmentService.create({
+      inventoryService: mockInventoryService,
+      shippingService: mockShippingService
+    });
+    
+    // Act
+    const result = await fulfillmentService.fulfillOrder(order);
+    
+    // Assert
+    expect(mockInventoryService.allocateInventory).toHaveBeenCalledWith(order);
+    expect(mockShippingService.createShipment).toHaveBeenCalled();
+    expect(result.order.status).toBe('SHIPPED');
+    expect(result.order.trackingNumber).toBe('TRACK123');
+  });
+});
+```
+
+## Common Pitfalls
+
+1. **Adding state to domain services**: Domain services should be stateless
+2. **Including infrastructure concerns**: Domain services should be pure domain logic, not deal with persistence, messaging, etc.
+3. **Anemic domain services**: Services that just pass through to repositories without adding domain logic
+4. **Too many responsibilities**: Services that try to do too much instead of focusing on a specific domain process
+5. **Application logic leaking in**: Including UI, persistence, or other non-domain concerns in domain services
+
 ## Best Practices
 
 1. **Name services after domain processes**: Use verbs and domain terminology
 2. **Keep services stateless**: Domain services shouldn't have their own state
 3. **Focus on a single responsibility**: Each service should represent one concept
 4. **Make dependencies explicit**: Clearly define what each service needs to work
-5. **Use immutable parameters and return values**: Inputs and outputs should be immutable
+5. **Use immutable parameters and return values**: Don't modify input objects
 6. **Document business rules**: Document the business rules implemented by the service
 7. **Validate inputs**: Ensure all inputs are valid before processing
 
@@ -480,4 +582,8 @@ describe('FundsTransferService', () => {
 
 ## Next Steps
 
-Now that you understand domain services, you should explore some of our [Advanced Topics](/guide/advanced/) to learn more about extending Domainify and applying these patterns in complex domains.
+Now that you understand domain services, you might want to learn about:
+
+- [Aggregates](./aggregates.md) - Clusters of domain objects that are treated as a unit
+- [Domain Events](./domain-events.md) - Notifications of significant occurrences in the domain
+- [Testing Domain Services](../advanced/testing.md#testing-domain-services) - Advanced techniques for testing domain services
