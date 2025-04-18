@@ -26,7 +26,7 @@ features:
 footer: MIT Licensed | Copyright © 2023-present Marco Müllner
 ---
 
-<!-- DIAGRAM: An animated diagram showing the layers of DDD concepts (Value Objects, Entities, Aggregates, etc.) with example code snippets for each, transitioning between them to show how they build on each other -->
+![Intro Diagram](/images/README_layer.png)
 
 ## What is Domain-Driven Design?
 
@@ -90,7 +90,7 @@ pnpm add domaindrivenjs
 
 ## Learning Path
 
-<!-- DIAGRAM: A visual learning path showing progression from DDD Fundamentals → Core Concepts → Advanced Topics, with branching paths for different expertise levels -->
+![Learning Path](/images/README_learning_path.png)
 
 **New to DDD?** Start with [DDD Fundamentals](/guide/ddd/) to learn the core concepts.
 

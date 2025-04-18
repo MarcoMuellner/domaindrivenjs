@@ -2,7 +2,7 @@
 
 Domain-Driven Design (DDD) is a powerful approach to software development, but it can be challenging to implement effectively. DomainDrivenJS makes DDD more accessible by providing a composition-based toolkit that aligns with JavaScript's strengths.
 
-<!-- DIAGRAM: A visual showing the three main challenges of implementing DDD, and how DomainDrivenJS addresses each one: 1) Complex domain modeling, 2) Maintaining integrity, 3) Evolving the model -->
+![challenges](/images/gs_challenges.png)
 
 ## What is Domain-Driven Design?
 
@@ -33,7 +33,7 @@ Tactical DDD provides implementation patterns:
 
 ## When to Use DDD
 
-<!-- DIAGRAM: Decision flow chart showing when to use DDD vs. simpler approaches, with factors like domain complexity, project lifespan, team size, and business criticality -->
+![Decision Flow Chart](/images/gs_decision_flow.png)
 
 Domain-Driven Design is most valuable when:
 
@@ -58,7 +58,7 @@ DomainDrivenJS brings DDD to JavaScript with a modern approach:
 4. **Developer experience first** - Providing clear, helpful errors and minimal boilerplate
 5. **Familiar JavaScript patterns** - Working with the language rather than against it
 
-<!-- DIAGRAM: Comparison between traditional class-based DDD implementation (showing complex inheritance tree) vs. DomainDrivenJS's composition approach (showing factory functions and composition) -->
+![DomainDrivenJS](/images/gs_comparison.png)
 
 ### Comparison with Other Approaches
 

@@ -2,7 +2,7 @@
 
 Value objects are one of the fundamental building blocks in Domain-Driven Design. They represent concepts in your domain that are defined by their attributes rather than by an identity. Understanding value objects is essential for building rich, expressive domain models.
 
-<!-- DIAGRAM: Visual comparison of Value Objects vs Entities, showing how multiple references to a value object with same properties are considered equal, while entities with same properties but different IDs are different -->
+![comparison of Value Objects vs Entities](/images/vo_vo_entity_comp.png)
 
 ## What is a Value Object?
 

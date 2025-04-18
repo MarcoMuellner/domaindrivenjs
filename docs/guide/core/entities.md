@@ -2,7 +2,7 @@
 
 Entities are a fundamental building block in Domain-Driven Design that represent objects with distinct identities that persist over time, even as their attributes change. While value objects are defined by their attributes, entities are defined primarily by their identity and continuity.
 
-<!-- DIAGRAM: Visual comparison showing how an entity maintains its identity despite attribute changes over time, with multiple states of the same entity shown in sequence with the ID remaining constant while properties change -->
+![entity_id](/images/entity_id.png)
 
 ## What is an Entity?
 
@@ -222,6 +222,8 @@ This immutability helps prevent bugs from unexpected state changes and makes you
 ## Entity Lifecycle
 
 Entities typically have a lifecycle with different states:
+
+![State Diagram](/images/entity_lifecycle.png)
 
 <!-- DIAGRAM: State diagram showing typical entity lifecycle stages (e.g., Created → Active → Suspended → Terminated) with transitions between them -->
 

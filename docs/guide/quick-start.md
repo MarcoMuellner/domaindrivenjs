@@ -9,7 +9,7 @@ We'll create a simplified e-commerce domain with:
 - Orders with line items
 - A basic order process flow
 
-<!-- DIAGRAM: A simple domain model diagram showing Product and Order aggregates with their relationships, value objects, and key operations -->
+![Domain Model Diagram](/images/qs_domain_model.png)
 
 ## Setup
 
