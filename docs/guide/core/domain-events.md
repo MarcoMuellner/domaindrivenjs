@@ -8,6 +8,10 @@ When something significant happens in your domain that other parts of your syste
 
 A domain event is an immutable object that represents something meaningful that has happened in your domain. They are always named in past tense (e.g., `OrderPlaced`, `PaymentReceived`) because they describe something that has already occurred.
 
+::: tip Real-world Analogy
+Think of a newspaper. When something significant happens in the world, a newspaper publishes the story. It doesn't directly tell each reader what happened—it simply publishes the news with all the relevant details, and interested readers can consume that information and react to it in their own way. Similarly, domain events announce that something important happened in your application, carrying all the relevant data about that occurrence, and interested components can subscribe to and react to these events without the source needing to know who's listening.
+:::
+
 ### Key Characteristics
 
 - **Named in past tense** - Events describe something that has already happened

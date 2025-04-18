@@ -14,6 +14,10 @@ An aggregate is a cluster of domain objects (entities and value objects) treated
 - **Identity** - Derived from the root entity's identity
 - **Transactional Consistency** - All changes to objects inside the boundary happen in a single transaction
 
+::: tip Real-world Analogy
+Think of a car. A car is composed of many parts—engine, wheels, seats, electronics—but you interact with it as a single unit. You don't start the engine directly; you turn the key (or push a button) in the car. You don't individually control each wheel; you turn the steering wheel. The car (aggregate root) controls and coordinates all its internal components and ensures they work together consistently. Similarly, in code, an aggregate provides a single point of control for a cluster of related objects, managing their interactions and maintaining the rules that keep them working properly together.
+:::
+
 ### Visualizing an Aggregate
 
 Think of an aggregate like a protective bubble around a group of related objects:

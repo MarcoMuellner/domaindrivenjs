@@ -14,6 +14,10 @@ An entity is an object that:
 - Often represents a **real-world individual, thing, or concept** with intrinsic identity
 - Enforces **business rules** related to its lifecycle and state transitions
 
+::: tip Real-world Analogy
+Think of your smartphone. If you change its case, add a screen protector, or even replace the battery, it's still your same phone with your unique data and settings. The phone has an identity (serial number) that persists even as its attributes change. This is exactly how entities work in code: they maintain their identity throughout their lifecycle, even as their attributes are modified. The same phone with a cracked screen is still your phone after you repair it.
+:::
+
 Think of an entity as answering the question "which specific one?" rather than just "what?"
 
 ### Real-World Examples

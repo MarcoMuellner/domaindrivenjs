@@ -6,6 +6,10 @@ Repositories are a critical pattern in Domain-Driven Design that provides a clea
 
 A repository is a collection-like interface that mediates between the domain model and data mapping layers, providing an illusion of an in-memory collection of domain objects. Think of it as a specialized "bookshelf" where your domain objects are stored and retrieved.
 
+::: tip Real-world Analogy
+Think of a library. When you want a book, you don't need to know how the library organizes its shelves, its cataloging system, or where specific books are physically located. You simply ask the librarian for a book by title or author. The librarian (the repository) handles all the details of finding, retrieving, and returning the book to its proper place. Similarly, repositories in code hide all the complex details of data storage and retrieval, allowing the rest of your application to work with domain objects directly without concerning itself with how or where they're stored.
+:::
+
 Key characteristics:
 - Provides a collection-like interface for accessing domain objects
 - Abstracts away data storage and retrieval mechanisms 

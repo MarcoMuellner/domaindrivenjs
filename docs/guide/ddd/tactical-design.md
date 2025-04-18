@@ -18,6 +18,10 @@ Tactical design helps you:
 
 Domain-Driven Design provides a set of building blocks that work together to express your domain model:
 
+::: tip Real-world Analogy
+Think of constructing a building. You don't just pile materials randomly—you use specific components (foundation, walls, roof, plumbing, wiring) that each serve particular purposes and connect in standard ways. Similarly, tactical DDD gives you specialized building blocks (value objects, entities, aggregates, etc.) that each serve specific purposes in your domain model and connect in standard ways. Just as a structural engineer knows when to use a load-bearing wall versus a partition, a domain modeler learns when to use an entity versus a value object, ensuring the resulting structure is both functional and maintainable.
+:::
+
 ### Core Building Blocks
 
 <!-- DIAGRAM: Hexagon or circular diagram showing the relationship between building blocks with arrows indicating relationships -->

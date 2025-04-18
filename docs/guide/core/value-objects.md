@@ -8,6 +8,10 @@ Value objects are one of the fundamental building blocks in Domain-Driven Design
 
 A value object is an immutable object that represents a descriptive aspect of the domain with no conceptual identity.
 
+::: tip Real-world Analogy
+Think of money in your wallet. When you have a $20 bill, you don't care about which specific $20 bill it is—any $20 bill will do. What matters is its value, not its identity. If you exchange your $20 bill for another $20 bill, nothing has changed from your perspective. This is exactly how value objects work in code: they're defined by their attributes (the amount "$20"), not by a unique identity.
+:::
+
 ### Key Characteristics:
 
 - **Defined by attributes** - Its identity is based on the combination of all its attribute values

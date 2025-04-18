@@ -17,6 +17,10 @@ Before diving into the patterns, let's understand why strategic design matters:
 
 A bounded context is a conceptual boundary around a specific model. Within this boundary, terms, concepts, and rules are consistently defined and used.
 
+::: tip Real-world Analogy
+Think of countries on a map. Each country has clear borders, its own language, laws, and culture. Words might sound the same across borders but have different meanings or connotations. The word "football" means something different in the US than in Europe. Similarly, in software, bounded contexts are like countries with their own language and rules. The term "customer" might mean something different in the Sales context versus the Support context, just as laws that apply in one country don't automatically apply in another. And just as countries need explicit protocols for border crossings, bounded contexts need explicit protocols for how information passes between them.
+:::
+
 ### Key Characteristics
 
 - **Explicit boundary** - Clear definition of what's inside vs. outside

@@ -6,6 +6,10 @@ Specifications are a powerful pattern in Domain-Driven Design that allows you to
 
 A specification is an object that encapsulates a business rule or query criterion, determining whether a given object satisfies specific criteria. Think of it as a "filter" or "predicate" that can be applied to domain objects to test if they meet certain conditions.
 
+::: tip Real-world Analogy
+Think of job requirements for a position. A job posting might specify: "Candidates must have 3+ years of experience, a computer science degree, and knowledge of JavaScript." This is a specification—it defines criteria that can be checked against any candidate to determine if they qualify. Similarly, in code, specifications encapsulate business rules (like "premium customers who have spent over $1000 this year") that can be checked against objects or translated into database queries. Just as you can combine job requirements ("must have X AND Y BUT NOT Z"), specifications can be combined to form complex criteria while keeping each individual rule clear and focused.
+:::
+
 Key characteristics:
 - Encapsulates a predicate (a yes/no question) about an object
 - Can be combined with other specifications using logical operators (and, or, not)

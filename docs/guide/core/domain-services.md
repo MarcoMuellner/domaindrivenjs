@@ -6,6 +6,10 @@ Domain services are an essential tactical pattern in Domain-Driven Design that e
 
 A domain service is a stateless component that implements business logic or operations that don't conceptually belong to any single entity or value object. Think of a domain service as a coordinator or process manager that orchestrates interactions between multiple domain objects to achieve a specific business outcome.
 
+::: tip Real-world Analogy
+Think of a wedding planner. The wedding planner doesn't own the venue, isn't part of the catering staff, and isn't one of the people getting married. Instead, the wedding planner coordinates between all these different parties to orchestrate a successful event. Similarly, a domain service doesn't own any particular data, but coordinates between different domain objects to perform operations that don't naturally belong to any single object. Just as a wedding planner handles processes that involve multiple parties (like scheduling, coordinating vendors, and managing timelines), a domain service handles business processes that involve multiple domain objects.
+:::
+
 Key characteristics:
 - Represents an operation or process in your domain, not a thing
 - Coordinates multiple domain objects to perform business logic
