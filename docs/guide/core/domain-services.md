@@ -31,6 +31,10 @@ Domain services offer several benefits:
 
 ## When to Use Domain Services
 
+::: tip Real-world Analogy
+Consider a real estate transaction. Neither the buyer nor the seller handles all the complex legal and financial tasks—instead, they work with a neutral third party (escrow service) that coordinates the process. Similarly, domain services handle operations that don't naturally belong to a single entity, providing a neutral space for coordinating complex business processes.
+:::
+
 You should use a domain service when:
 
 - An operation involves multiple aggregates
@@ -83,6 +87,10 @@ A domain service:
 5. Returns results (often modified domain objects)
 
 ## Creating Domain Services with DomainDrivenJS
+
+::: tip Real-world Analogy
+Think of domain services like professional specialists (accountants, lawyers, etc.) who perform specific services but don't own any business assets themselves. You bring them information, they apply their expertise and return results, but they maintain no permanent state of their own. Similarly, domain services apply expertise to domain objects without maintaining their own persistent state.
+:::
 
 DomainDrivenJS provides a simple way to create domain services:
 
@@ -386,6 +394,10 @@ const InventoryAllocationService = domainService({
 ```
 
 ## Domain Services and Dependencies
+
+::: tip Real-world Analogy
+Think of domain services with dependencies like specialized hospital departments. A surgical team needs anesthesiology, nursing, and sterilization services to function effectively. These dependencies are explicit, required, and their absence would prevent the surgery from proceeding safely. Similarly, domain services declare what other services they require to perform their operations properly.
+:::
 
 Domain services may depend on other domain services:
 

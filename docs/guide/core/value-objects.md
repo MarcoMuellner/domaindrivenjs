@@ -24,6 +24,10 @@ Think of a value object as answering the question "what" rather than "which one.
 
 ### Value Objects vs. Primitives
 
+::: tip Real-world Analogy
+Using primitives instead of value objects is like writing out street directions as "turn left, go straight, turn right" instead of saying "go to Central Park." The value object gives meaning and context to what would otherwise be just raw data.
+:::
+
 Many developers default to using primitive types (strings, numbers, booleans) to represent domain concepts. This leads to what's called "primitive obsession" - a code smell where primitives are used for domain concepts that deserve their own type.
 
 ```javascript
@@ -367,6 +371,10 @@ try {
 ```
 
 ## Composing Value Objects
+
+::: tip Real-world Analogy
+Think of LEGO blocks. Each block is useful on its own, but by combining smaller blocks, you can build more complex and meaningful structures. Similarly, you can compose simple value objects into more complex ones that better represent your domain concepts.
+:::
 
 Complex domain concepts can be composed of other value objects:
 

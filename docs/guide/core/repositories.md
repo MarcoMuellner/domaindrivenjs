@@ -101,6 +101,10 @@ Let's break down the components:
 
 ## Repository Adapters
 
+::: tip Real-world Analogy
+Repository adapters are like power adapters for international travel. Whether you're in Europe, Asia, or America with different wall outlets, the adapter ensures your device gets the power it needs. Similarly, repository adapters ensure your domain objects work with different storage systems (MongoDB, SQL, memory) without changing your core code.
+:::
+
 A key strength of the repository pattern is its abstraction of storage details through adapters. DomainDrivenJS provides adapters for different storage systems:
 
 ```javascript
@@ -161,6 +165,10 @@ await productRepo.delete('123e4567-e89b-12d3-a456-426614174000');
 ```
 
 ## Standard Repository Methods
+
+::: tip Real-world Analogy
+Repository methods are like the standard services offered by a storage facility. You can store items (save), retrieve them (find), check if you have something in storage (exists), replace items (update), or remove them altogether (delete)—all without needing to know how the facility is organized internally.
+:::
 
 All DomainDrivenJS repositories come with these standard methods:
 
@@ -360,6 +368,10 @@ describe('ProductService', () => {
 5. **Inconsistent transaction boundaries**: Not considering aggregate boundaries when designing transactions
 
 ## Best Practices
+
+::: tip Real-world Analogy
+Good repository design is like a well-organized kitchen. Ingredients (data) are stored logically (separate repositories for different types), the chef (domain service) requests ingredients as needed, and kitchen staff (repositories) know exactly where to find and how to prepare each ingredient. No one needs to know that milk is on the third shelf of the walk-in cooler—they just ask for milk.
+:::
 
 1. **Repository per aggregate**: Create one repository for each aggregate root, not for every entity
 2. **Keep repositories focused**: Each repository should handle one type of entity
