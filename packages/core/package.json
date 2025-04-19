@@ -1,6 +1,6 @@
 {
   "name": "domaindrivenjs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Composition-based Domain-Driven Design toolkit for JavaScript/TypeScript",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -24,7 +24,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup && pnpm run copy-types",
+    "build": "tsup && pnpm run generate-types",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
