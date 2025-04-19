@@ -6,8 +6,8 @@
     "lib": ["ESNext"],
     "declaration": true,
     "emitDeclarationOnly": true,
-    "allowJs": false,
-    "checkJs": false,
+    "allowJs": true,
+    "checkJs": true,
     "jsx": "preserve",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -23,6 +23,6 @@
     "skipLibCheck": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*.d.ts"],
+  "include": ["src/**/*.js", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.js", "**/*.test.ts"]
 }

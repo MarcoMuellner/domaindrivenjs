@@ -1,4 +1,5 @@
 import { NumberValue } from "./Number.js";
+import { z } from "zod";
 
 /**
  * Creates a PercentageNumber value object that ensures values are between 0 and 1
@@ -6,7 +7,7 @@ import { NumberValue } from "./Number.js";
  */
 export const PercentageNumber = NumberValue.extend({
   name: "PercentageNumber",
-  schema: (baseSchema) => baseSchema.min(0).max(1),
+  schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).min(0).max(1),
   methods: {
     /**
      * Formats this percentage with a specified number of decimal places

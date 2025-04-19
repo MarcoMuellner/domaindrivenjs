@@ -1,4 +1,5 @@
 import { NumberValue } from "./Number.js";
+import { z } from "zod";
 
 /**
  * Creates a PositiveNumber value object that ensures values are greater than zero
@@ -6,6 +7,6 @@ import { NumberValue } from "./Number.js";
  */
 export const PositiveNumber = NumberValue.extend({
   name: "PositiveNumber",
-  schema: (baseSchema) => baseSchema.positive(),
+  schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).positive(),
   methods: {},
 });

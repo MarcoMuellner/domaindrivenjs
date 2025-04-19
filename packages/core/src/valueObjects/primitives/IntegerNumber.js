@@ -1,4 +1,5 @@
 import { NumberValue } from "./Number.js";
+import { z } from "zod";
 
 /**
  * Creates an IntegerNumber value object that ensures values are integers
@@ -6,6 +7,6 @@ import { NumberValue } from "./Number.js";
  */
 export const IntegerNumber = NumberValue.extend({
   name: "IntegerNumber",
-  schema: (baseSchema) => baseSchema.int(),
+  schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).int(),
   methods: {},
 });
