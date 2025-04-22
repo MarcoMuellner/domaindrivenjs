@@ -42,7 +42,7 @@ export type ValueObjectFactory<T, SchemaType extends z.ZodType = z.ZodType> = {
   extend: <R = unknown>(options: {
     name: string;
     schema?: (schema: SchemaType) => z.ZodType;
-    methods?: Record<string, Function>;
+    methodsFactory: (factory: ValueObjectFactory<T, SchemaType>) => Record<string, Function>;
   }) => ValueObjectFactory<R>;
 }
 
@@ -66,9 +66,9 @@ export function valueObject<T, SchemaType extends z.ZodType = z.ZodType>(options
   schema: SchemaType;
   
   /**
-   * Methods to attach to the value object
+   * Factory function that creates methods
    */
-  methods?: Record<string, Function>;
+  methodsFactory: (factory: ValueObjectFactory<T, SchemaType>) => Record<string, Function>;
   
   /**
    * Override primitive detection

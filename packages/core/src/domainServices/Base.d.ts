@@ -28,9 +28,15 @@ export function domainService<D = Record<string, unknown>, O = Record<string, Fu
   dependencies?: D;
   
   /**
-   * Operations this service provides
+   * Method factory function that creates operations
+   * @deprecated Use operationsFactory instead
    */
-  operations: O;
+  methodsFactory?: (factory: any) => Record<string, Function>;
+  
+  /**
+   * Factory function that creates operations
+   */
+  operationsFactory: (factory: any) => Record<string, Function>;
 }): {
   /**
    * Creates a new domain service instance with the provided dependencies
@@ -72,8 +78,14 @@ export function domainService<D = Record<string, unknown>, O = Record<string, Fu
     dependencies?: Partial<NewD>;
     
     /**
-     * Additional operations
+     * Method factory function that creates operations
+     * @deprecated Use operationsFactory instead
      */
-    operations?: Partial<NewO>;
+    methodsFactory?: (factory: any) => Record<string, Function>;
+    
+    /**
+     * Factory function that creates operations
+     */
+    operationsFactory: (factory: any) => Record<string, Function>;
   }) => ReturnType<typeof domainService<D & NewD, O & NewO>>;
 };

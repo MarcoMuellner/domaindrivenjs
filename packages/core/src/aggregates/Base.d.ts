@@ -63,7 +63,7 @@ export type AggregateFactory<SchemaType extends z.ZodType, T> = {
   extend: <NewSchemaType extends z.ZodType = SchemaType, NewT = T>(options: {
     name: string;
     schema?: (schema: SchemaType) => NewSchemaType;
-    methods?: Record<string, Function>;
+    methodsFactory: (factory: AggregateFactory<SchemaType, T>) => Record<string, Function>;
     identity?: string;
     invariants?: InvariantDefinition[];
     historize?: boolean;
@@ -96,9 +96,9 @@ export function aggregate<SchemaType extends z.ZodType, T = z.infer<SchemaType>>
   identity: string;
   
   /**
-   * Methods to attach to the aggregate
+   * Factory function that creates methods
    */
-  methods?: Record<string, Function>;
+  methodsFactory: (factory: AggregateFactory<SchemaType, T>) => Record<string, Function>;
   
   /**
    * Business rules that must be satisfied

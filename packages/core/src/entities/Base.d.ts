@@ -54,7 +54,7 @@ export type EntityFactory<SchemaType extends z.ZodType, T> = {
   extend: <NewSchemaType extends z.ZodType = SchemaType, NewT = T>(options: {
     name: string;
     schema?: (schema: SchemaType) => NewSchemaType;
-    methods?: Record<string, Function>;
+    methodsFactory: (factory: EntityFactory<SchemaType, T>) => Record<string, Function>;
     identity?: string;
     historize?: boolean;
   }) => EntityFactory<NewSchemaType, NewT>;
@@ -86,9 +86,9 @@ export function entity<SchemaType extends z.ZodType, T = z.infer<SchemaType>>(op
   identity: string;
   
   /**
-   * Methods to attach to the entity
+   * Factory function that creates methods
    */
-  methods?: Record<string, Function>;
+  methodsFactory: (factory: EntityFactory<SchemaType, T>) => Record<string, Function>;
   
   /**
    * Whether to track state changes
