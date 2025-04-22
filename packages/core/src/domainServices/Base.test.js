@@ -8,38 +8,53 @@ describe("domainService", () => {
     it("should throw error if name is missing", () => {
       expect(() =>
         domainService({
-          operations: { test: () => {} },
+          methodsFactory: (factory) => ({}),
+          operationsFactory: () => ({ test: () => {} }),
         }),
       ).toThrow("Domain service name is required");
     });
-
-    it("should throw error if operations are missing", () => {
+    
+    it("should throw error if method factory is missing", () => {
       expect(() =>
         domainService({
           name: "TestService",
+          operationsFactory: () => ({}),
         }),
-      ).toThrow("Domain service operations are required");
+      ).toThrow("Method factory is required");
     });
 
-    it("should throw error if operations are not an object", () => {
+    it("should throw error if operations factory is missing", () => {
       expect(() =>
         domainService({
           name: "TestService",
-          operations: "not an object",
+          methodsFactory: (factory) => ({}),
         }),
-      ).toThrow("Domain service operations are required");
+      ).toThrow("Operations factory is required");
+    });
+
+    it("should throw error if operations factory is not a function", () => {
+      expect(() =>
+        domainService({
+          name: "TestService",
+          methodsFactory: (factory) => ({}),
+          operationsFactory: "not an object",
+        }),
+      ).toThrow("Operations factory is required");
     });
 
     it("should throw error if any operation is not a function", () => {
-      expect(() =>
-        domainService({
+      expect(() => {
+        const service = domainService({
           name: "TestService",
-          operations: {
+          methodsFactory: (factory) => ({}),
+          operationsFactory: (factory) => ({
             validOp: () => {},
             invalidOp: "not a function",
-          },
-        }),
-      ).toThrow("Operation 'invalidOp' must be a function");
+          }),
+        });
+        
+        service.create();
+      }).toThrow("Operation 'invalidOp' must be a function");
     });
   });
 
@@ -49,11 +64,12 @@ describe("domainService", () => {
       // Arrange
       const TestService = domainService({
         name: "TestService",
-        operations: {
+        methodsFactory: (factory) => ({
           doSomething: function () {
             return "done";
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act
@@ -73,14 +89,15 @@ describe("domainService", () => {
           repo: null,
           logger: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           getRepo: function () {
             return this.dependencies.repo;
           },
           getLogger: function () {
             return this.dependencies.logger;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const testRepo = { find: () => {} };
@@ -105,9 +122,10 @@ describe("domainService", () => {
           requiredDep: {}, // Non-null means required
           optionalDep: null, // Null means optional
         },
-        operations: {
+        methodsFactory: (factory) => ({}),
+        operationsFactory: (factory) => ({
           doSomething: function () {},
-        },
+        }),
       });
 
       // Act & Assert
@@ -124,9 +142,10 @@ describe("domainService", () => {
       // Arrange
       const TestService = domainService({
         name: "TestService",
-        operations: {
+        methodsFactory: (factory) => ({
           doSomething: function () {},
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act
@@ -158,11 +177,12 @@ describe("domainService", () => {
         dependencies: {
           calculator: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           calculate: function (x, y) {
             return this.dependencies.calculator.calculate(x, y);
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const service = MathService.create({
@@ -184,7 +204,7 @@ describe("domainService", () => {
         dependencies: {
           value: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           getValue: function () {
             return this.dependencies.value;
           },
@@ -192,7 +212,8 @@ describe("domainService", () => {
             // This should work because operations are bound to the service
             return this.getValue() * 2;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const service = TestService.create({ value: 21 });
@@ -209,21 +230,23 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        operations: {
+        methodsFactory: (factory) => ({
           baseOperation: function () {
             return "base";
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act
       const ExtendedService = BaseService.extend({
         name: "ExtendedService",
-        operations: {
+        methodsFactory: (factory) => ({
           extendedOperation: function () {
             return "extended";
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const service = ExtendedService.create();
@@ -241,11 +264,12 @@ describe("domainService", () => {
         dependencies: {
           baseDep: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           getBaseDep: function () {
             return this.dependencies.baseDep;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act
@@ -254,11 +278,12 @@ describe("domainService", () => {
         dependencies: {
           extendedDep: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           getExtendedDep: function () {
             return this.dependencies.extendedDep;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const service = ExtendedService.create({
@@ -275,17 +300,19 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        operations: {
+        methodsFactory: (factory) => ({
           baseOperation: function () {},
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act & Assert
       expect(() =>
         BaseService.extend({
-          operations: {
+          methodsFactory: (factory) => ({}),
+          operationsFactory: () => ({
             extendedOperation: function () {},
-          },
+          }),
         }),
       ).toThrow("Extended domain service name is required");
     });
@@ -294,21 +321,23 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        operations: {
+        methodsFactory: (factory) => ({
           calculate: function (a, b) {
             return a + b;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act - override the calculate method
       const ExtendedService = BaseService.extend({
         name: "ExtendedService",
-        operations: {
+        methodsFactory: (factory) => ({
           calculate: function (a, b) {
             return a * b;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       const baseService = BaseService.create();
@@ -350,7 +379,7 @@ describe("domainService", () => {
           accountRepository: null,
           paymentGateway: null,
         },
-        operations: {
+        methodsFactory: (factory) => ({
           async transferFunds(sourceAccountId, destinationAccountId, amount) {
             const { accountRepository } = this.dependencies;
 
@@ -446,7 +475,8 @@ describe("domainService", () => {
 
             return paymentResult;
           },
-        },
+        }),
+        operationsFactory: () => ({}),
       });
 
       // Act

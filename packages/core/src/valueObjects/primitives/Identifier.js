@@ -39,7 +39,7 @@ export const Identifier = valueObject({
     .refine((val) => val.length > 0, {
       message: "Identifier cannot be empty",
     }),
-  methods: {
+  methodsFactory: (factory) => ({
     /**
      * Checks if this identifier matches a specific pattern
      * @param {RegExp} pattern - Regular expression to match against
@@ -68,7 +68,7 @@ export const Identifier = valueObject({
      */
     withPrefix(prefix) {
       return /** @type {IdentifierType} */ (
-        Identifier.create(`${prefix}${this}`)
+        factory.create(`${prefix}${this}`)
       );
     },
 
@@ -79,7 +79,7 @@ export const Identifier = valueObject({
      */
     withSuffix(suffix) {
       return /** @type {IdentifierType} */ (
-        Identifier.create(`${this}${suffix}`)
+        factory.create(`${this}${suffix}`)
       );
     },
 
@@ -87,7 +87,7 @@ export const Identifier = valueObject({
      * Converts this identifier to a string -> overrides default toString
      * @returns {string} String representation of the identifier
      */
-  },
+  }),
   overrideIsPrimitive: true,
 });
 
@@ -101,7 +101,7 @@ Identifier.uuid = function () {
   return valueObject({
     name: "UUIDIdentifier",
     schema: z.string().uuid(),
-    methods: {
+    methodsFactory: (factory) => ({
       /**
        * Gets the version of this UUID
        * @returns {number} The UUID version number
@@ -134,7 +134,7 @@ Identifier.uuid = function () {
         }
         return segments[index];
       },
-    },
+    }),
   });
 };
 
@@ -151,14 +151,14 @@ Identifier.numeric = function (options = {}) {
   return valueObject({
     name: "NumericIdentifier",
     schema: z.number().int().min(min),
-    methods: {
+    methodsFactory: (factory) => ({
       /**
        * Returns the next sequential identifier
        * @returns {NumericIdentifierType} A new identifier with value incremented by 1
        */
       next() {
-        // Don't use this.constructor, directly reference the factory
-        return Identifier.numeric({ min: 1 }).create(this.valueOf() + 1);
+        // Use the factory to create the next value
+        return factory.create(this.valueOf() + 1);
       },
 
       /**
@@ -175,7 +175,7 @@ Identifier.numeric = function (options = {}) {
 
         return str;
       },
-    },
+    }),
   });
 };
 
@@ -189,7 +189,7 @@ Identifier.pattern = function (pattern, name = "PatternIdentifier") {
   return valueObject({
     name,
     schema: z.string().regex(pattern),
-    methods: {
+    methodsFactory: (factory) => ({
       /**
        * Extracts parts of the identifier using capturing groups from the pattern
        * @param {RegExp} extractPattern - Pattern with capturing groups
@@ -199,7 +199,7 @@ Identifier.pattern = function (pattern, name = "PatternIdentifier") {
         const match = this.toString().match(extractPattern);
         return match ? match.slice(1) : [];
       },
-    },
+    }),
   });
 };
 

@@ -32,14 +32,14 @@ import { valueObject } from "../Base.js";
 export const NumberValue = valueObject({
   name: "Number",
   schema: z.number(),
-  methods: {
+  methodsFactory: (factory) => ({
     /**
      * Adds a value to this number
      * @param {number} value - Value to add
      * @returns {NumberValueType} New instance with result
      */
     add(value) {
-      return /** @type {NumberValueType} */ (NumberValue.create(this + value));
+      return /** @type {NumberValueType} */ (factory.create(this + value));
     },
 
     /**
@@ -48,7 +48,7 @@ export const NumberValue = valueObject({
      * @returns {NumberValueType} New instance with result
      */
     subtract(value) {
-      return /** @type {NumberValueType} */ (NumberValue.create(this - value));
+      return /** @type {NumberValueType} */ (factory.create(this - value));
     },
 
     /**
@@ -57,7 +57,7 @@ export const NumberValue = valueObject({
      * @returns {NumberValueType} New instance with result
      */
     multiply(factor) {
-      return /** @type {NumberValueType} */ (NumberValue.create(this * factor));
+      return /** @type {NumberValueType} */ (factory.create(this * factor));
     },
 
     /**
@@ -71,7 +71,7 @@ export const NumberValue = valueObject({
         throw new Error("Cannot divide by zero");
       }
       return /** @type {NumberValueType} */ (
-        NumberValue.create(this / divisor)
+        factory.create(this / divisor)
       );
     },
 
@@ -81,7 +81,7 @@ export const NumberValue = valueObject({
      * @returns {NumberValueType} New instance with incremented value
      */
     increment(amount = 1) {
-      return /** @type {NumberValueType} */ (NumberValue.create(this + amount));
+      return /** @type {NumberValueType} */ (factory.create(this + amount));
     },
 
     /**
@@ -90,7 +90,7 @@ export const NumberValue = valueObject({
      * @returns {NumberValueType} New instance with decremented value
      */
     decrement(amount = 1) {
-      return /** @type {NumberValueType} */ (NumberValue.create(this - amount));
+      return /** @type {NumberValueType} */ (factory.create(this - amount));
     },
 
     /**
@@ -101,7 +101,7 @@ export const NumberValue = valueObject({
     round(decimals = 0) {
       const factor = Math.pow(10, decimals);
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.round(this * factor) / factor)
+        factory.create(Math.round(this * factor) / factor)
       );
     },
 
@@ -113,7 +113,7 @@ export const NumberValue = valueObject({
     floor(decimals = 0) {
       const factor = Math.pow(10, decimals);
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.floor(this * factor) / factor)
+        factory.create(Math.floor(this * factor) / factor)
       );
     },
 
@@ -125,7 +125,7 @@ export const NumberValue = valueObject({
     ceil(decimals = 0) {
       const factor = Math.pow(10, decimals);
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.ceil(this * factor) / factor)
+        factory.create(Math.ceil(this * factor) / factor)
       );
     },
 
@@ -167,7 +167,7 @@ export const NumberValue = valueObject({
      */
     abs() {
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.abs(this))
+        factory.create(Math.abs(this))
       );
     },
 
@@ -178,7 +178,7 @@ export const NumberValue = valueObject({
      */
     pow(exponent) {
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.pow(this, exponent))
+        factory.create(Math.pow(this, exponent))
       );
     },
 
@@ -192,7 +192,7 @@ export const NumberValue = valueObject({
         throw new Error("Cannot calculate square root of negative number");
       }
       return /** @type {NumberValueType} */ (
-        NumberValue.create(Math.sqrt(this))
+        factory.create(Math.sqrt(this))
       );
     },
 
@@ -232,5 +232,5 @@ export const NumberValue = valueObject({
         currency,
       }).format(this);
     },
-  },
+  }),
 });

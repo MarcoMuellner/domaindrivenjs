@@ -102,17 +102,17 @@ const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {
+  methodsFactory: (MoneyFactory) => ({
     add(other) {
       if (this.currency !== other.currency) {
         throw new Error('Cannot add different currencies');
       }
-      return Money.create({ 
+      return MoneyFactory.create({ 
         amount: this.amount + other.amount, 
         currency: this.currency 
       });
     }
-  }
+  })
 });
 
 // 2. Entities - objects with identity that can change over time
@@ -125,16 +125,16 @@ const Product = entity({
     stockLevel: z.number().int().nonnegative()
   }),
   identity: 'id',
-  methods: {
+  methodsFactory: (ProductFactory) => ({
     decreaseStock(quantity) {
       if (quantity > this.stockLevel) {
         throw new Error('Not enough stock');
       }
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         stockLevel: this.stockLevel - quantity
       });
     }
-  }
+  })
 });
 
 // 3. Aggregates - clusters of objects treated as a single unit
@@ -157,13 +157,13 @@ const Order = aggregate({
       check: order => order.status !== 'PLACED' || order.items.length > 0
     }
   ],
-  methods: {
+  methodsFactory: (OrderFactory) => ({
     addItem(product, quantity) {
       // Implementation...
-      return Order.update(this, { /* updates */ });
+      return OrderFactory.update(this, { /* updates */ });
     },
     placeOrder() {
-      return Order.update(this, {
+      return OrderFactory.update(this, {
         status: 'PLACED'
       }).emitEvent('OrderPlaced', {
         orderId: this.id,
@@ -171,7 +171,7 @@ const Order = aggregate({
         timestamp: new Date()
       });
     }
-  }
+  })
 });
 ```
 

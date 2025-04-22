@@ -77,12 +77,12 @@ const Product = entity({
     updatedAt: z.date()
   }),
   identity: 'id',                      // Which field is the identity
-  methods: {                           // Methods for behavior
+  methodsFactory: (ProductFactory) => ({  // Methods factory for behavior
     updatePrice(newPrice) {
       if (newPrice <= 0) {
         throw new Error('Price must be positive');
       }
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         price: newPrice,
         updatedAt: new Date()
       });
@@ -92,33 +92,33 @@ const Product = entity({
       if (quantity > this.stockLevel) {
         throw new Error('Not enough stock available');
       }
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         stockLevel: this.stockLevel - quantity,
         updatedAt: new Date()
       });
     },
     
     increaseStock(quantity) {
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         stockLevel: this.stockLevel + quantity,
         updatedAt: new Date()
       });
     },
     
     deactivate() {
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         isActive: false,
         updatedAt: new Date()
       });
     },
     
     activate() {
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         isActive: true,
         updatedAt: new Date()
       });
     }
-  }
+  })
 });
 ```
 
@@ -127,7 +127,7 @@ Let's break down the components:
 1. **`name`**: A descriptive name for your entity
 2. **`schema`**: A Zod schema that defines the structure and validation rules
 3. **`identity`**: The property that uniquely identifies this entity
-4. **`methods`**: Functions that provide behavior and enforce business rules
+4. **`methodsFactory`**: A factory function that receives the entity factory and returns methods that provide behavior and enforce business rules
 
 ## Using Entities
 

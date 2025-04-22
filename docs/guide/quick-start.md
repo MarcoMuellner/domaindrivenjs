@@ -45,19 +45,19 @@ export const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {
+  methodsFactory: (MoneyFactory) => ({
     add(other) {
       if (this.currency !== other.currency) {
         throw new Error(`Cannot add ${other.currency} to ${this.currency}`);
       }
-      return Money.create({ 
+      return MoneyFactory.create({ 
         amount: this.amount + other.amount, 
         currency: this.currency 
       });
     },
     
     multiply(factor) {
-      return Money.create({ 
+      return MoneyFactory.create({ 
         amount: this.amount * factor, 
         currency: this.currency 
       });
@@ -69,7 +69,7 @@ export const Money = valueObject({
         currency: this.currency
       }).format(this.amount);
     }
-  }
+  })
 });
 
 // Let's test our Money value object
@@ -109,35 +109,35 @@ export const Product = entity({
     active: z.boolean().default(true)
   }),
   identity: 'id', // The property that uniquely identifies this entity
-  methods: {
+  methodsFactory: (ProductFactory) => ({
     // Decrease stock level (e.g., when ordered)
     decreaseStock(quantity) {
       if (quantity > this.stockLevel) {
         throw new Error(`Insufficient stock: requested ${quantity}, available ${this.stockLevel}`);
       }
       
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         stockLevel: this.stockLevel - quantity
       });
     },
     
     // Increase stock level (e.g., when restocked)
     increaseStock(quantity) {
-      return Product.update(this, {
+      return ProductFactory.update(this, {
         stockLevel: this.stockLevel + quantity
       });
     },
     
     // Update price
     updatePrice(newPrice) {
-      return Product.update(this, { price: newPrice });
+      return ProductFactory.update(this, { price: newPrice });
     },
     
     // Activate/deactivate product
     setActive(isActive) {
-      return Product.update(this, { active: isActive });
+      return ProductFactory.update(this, { active: isActive });
     }
-  }
+  })
 });
 
 // Let's use our Product entity
@@ -196,7 +196,7 @@ export const Order = aggregate({
       message: 'Placed order must have a placement date'
     }
   ],
-  methods: {
+  methodsFactory: (OrderFactory) => ({
     // Add an item to the order
     addItem(product, quantity) {
       if (this.status !== 'DRAFT') {
@@ -235,7 +235,7 @@ export const Order = aggregate({
         newItems = [...this.items, newItem];
       }
       
-      return Order.update(this, { items: newItems });
+      return OrderFactory.update(this, { items: newItems });
     },
     
     // Place the order
@@ -245,7 +245,7 @@ export const Order = aggregate({
       }
       
       // The invariants will be checked automatically when we update
-      return Order.update(this, {
+      return OrderFactory.update(this, {
         status: 'PLACED',
         placedAt: new Date()
       }).emitEvent('OrderPlaced', {
@@ -262,7 +262,7 @@ export const Order = aggregate({
         throw new Error(`Cannot cancel an order with status: ${this.status}`);
       }
       
-      return Order.update(this, {
+      return OrderFactory.update(this, {
         status: 'CANCELLED'
       }).emitEvent('OrderCancelled', {
         orderId: this.id,
@@ -287,7 +287,7 @@ export const Order = aggregate({
       
       return total;
     }
-  }
+  })
 });
 
 // Let's use our Order aggregate

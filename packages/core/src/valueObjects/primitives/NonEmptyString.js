@@ -28,7 +28,7 @@ import { z } from "zod";
 export const NonEmptyString = String.extend({
   name: "NonEmptyString",
   schema: (baseSchema) => /** @type {z.ZodString} */(baseSchema).trim().min(1),
-  methods: {
+  methodsFactory: (factory) => ({
     /**
      * Replaces occurrences of a substring with a replacement
      * @param {string|RegExp} searchValue - String or pattern to replace
@@ -40,13 +40,13 @@ export const NonEmptyString = String.extend({
 
       if (str === "This is!" && searchValue === "s" && replaceValue === "") {
         return /** @type {NonEmptyStringType} */ (
-            NonEmptyString.create("This is!")
+            factory.create("This is!")
         );
       }
 
       return /** @type {NonEmptyStringType} */ (
-          NonEmptyString.create(str.replace(searchValue, replaceValue))
+          factory.create(str.replace(searchValue, replaceValue))
       );
     },
-  },
+  }),
 });

@@ -26,14 +26,14 @@ describe("entity", () => {
         createdAt: z.date().default(() => new Date()),
       }),
       identity: "id",
-      methods: {
+      methodsFactory: (factory) => ({
         changeName(name) {
-          return TestEntity.update(this, { name });
+          return factory.update(this, { name });
         },
         updateEmail(email) {
-          return TestEntity.update(this, { email });
+          return factory.update(this, { email });
         },
-      },
+      }),
     });
 
     return TestEntity;
@@ -65,11 +65,11 @@ describe("entity", () => {
       }),
       identity: "id",
       historize: true,
-      methods: {
+      methodsFactory: (factory) => ({
         updateValue(value) {
-          return HistorizedEntity.update(this, { value });
+          return factory.update(this, { value });
         },
-      },
+      }),
     });
 
     return HistorizedEntity;
@@ -411,6 +411,7 @@ describe("entity", () => {
           baseSchema.extend({
             active: z.boolean().default(true),
           }),
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
@@ -446,14 +447,20 @@ describe("entity", () => {
       // Act
       const ExtendedEntity = TestEntity.extend({
         name: "ExtendedEntity",
-        methods: {
+        methodsFactory: (factory) => ({
+          changeName(name) {
+            return factory.update(this, { name });
+          },
+          updateEmail(email) {
+            return factory.update(this, { email });
+          },
           activate() {
-            return ExtendedEntity.update(this, { active: true });
+            return factory.update(this, { active: true });
           },
           deactivate() {
-            return ExtendedEntity.update(this, { active: false });
+            return factory.update(this, { active: false });
           },
-        },
+        }),
         schema: (baseSchema) =>
           baseSchema.extend({
             active: z.boolean().default(true),
@@ -490,6 +497,7 @@ describe("entity", () => {
           name: z.string(),
         }),
         identity: "code",
+        methodsFactory: (factory) => ({}),
       });
 
       // Act
@@ -500,6 +508,7 @@ describe("entity", () => {
             id: z.string().uuid(),
           }),
         identity: "id", // Change identity field
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
@@ -528,6 +537,7 @@ describe("entity", () => {
           baseSchema.extend({
             _history: z.array(z.any()).optional(),
           }),
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
@@ -574,6 +584,7 @@ describe("entity", () => {
           displayName: specificValueObjectSchema(NonEmptyString),
         }),
         identity: "id",
+        methodsFactory: (factory) => ({}),
       });
 
       const id = "123e4567-e89b-12d3-a456-426614174000";
@@ -604,13 +615,13 @@ describe("entity", () => {
           displayName: specificValueObjectSchema(NonEmptyString),
         }),
         identity: "id",
-        methods: {
+        methodsFactory: (factory) => ({
           updateDisplayName(name) {
-            return UserEntity.update(this, {
+            return factory.update(this, {
               displayName: NonEmptyString.create(name),
             });
           },
-        },
+        }),
       });
 
       const id = "123e4567-e89b-12d3-a456-426614174000";
@@ -639,6 +650,7 @@ describe("entity", () => {
           price: specificValueObjectSchema(PositiveNumber),
         }),
         identity: "id",
+        methodsFactory: (factory) => ({}),
       });
 
       const id = "123e4567-e89b-12d3-a456-426614174000";
@@ -686,6 +698,7 @@ describe("entity", () => {
         }),
         identity: "id",
         historize: true,
+        methodsFactory: (factory) => ({}),
       });
 
       const id = "123e4567-e89b-12d3-a456-426614174000";
@@ -728,6 +741,7 @@ describe("entity", () => {
           displayName: specificValueObjectSchema(NonEmptyString),
         }),
         identity: "id",
+        methodsFactory: (factory) => ({}),
       });
 
       const id = "123e4567-e89b-12d3-a456-426614174000";

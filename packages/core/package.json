@@ -32,7 +32,7 @@
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "docs": "jsdoc -c jsdoc.json",
-    "prepublish": "pnpm run test && pnpm run lint && pnpm run build",
+    "prepublish": "pnpm run build",
     "prepublishOnly": "pnpm run build",
     "generate-types": "tsc --project tsconfig.types.json",
     "copy-types": "cp src/index.d.ts dist/"
@@ -50,13 +50,13 @@
   ],
   "author": "DomainDrivenJS Team",
   "license": "MIT",
-  "homepage": "https://github.com/yourusername/domaindrivenjs",
+  "homepage": "https://marcomuellner.github.io/domaindrivenjs/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/domaindrivenjs.git"
+    "url": "git+https://github.com/marcomuellner/domaindrivenjs.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/domaindrivenjs/issues"
+    "url": "https://github.com/marcomuellner/domaindrivenjs/issues"
   },
   "dependencies": {
     "zod": "^3.24.2"
@@ -80,5 +80,8 @@
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,0 +1,211 @@
+name: NPM Publish
+
+on:
+  # Auto-trigger beta builds on push to main
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+      - '!**/*.md'
+      - '!**/*.test.js'
+
+  # Manually trigger beta builds
+  workflow_dispatch:
+    inputs:
+      beta_tag:
+        description: 'Custom beta tag suffix (default: timestamp+commit)'
+        required: false
+        type: string
+      package:
+        description: 'Package to publish (leave empty for all)'
+        required: false
+        type: string
+
+  # Trigger releases based on GitHub releases
+  release:
+    types: [published]
+
+jobs:
+  # Test job to ensure everything works
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run tests
+        run: pnpm test
+
+  # Build and publish beta release
+  publish-beta:
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm run --filter "./packages/*" build
+
+      - name: Set beta version
+        id: set-beta-version
+        run: |
+          if [ -n "${{ github.event.inputs.beta_tag }}" ]; then
+            # Use custom beta tag if provided
+            echo "BETA_VERSION=-beta.${{ github.event.inputs.beta_tag }}" >> $GITHUB_ENV
+            echo "Using custom beta tag: -beta.${{ github.event.inputs.beta_tag }}"
+          else
+            # Generate beta tag from timestamp and commit hash
+            COMMIT_SHA=$(git rev-parse --short HEAD)
+            DATE=$(date +'%Y%m%d%H%M')
+            echo "BETA_VERSION=-beta.${DATE}.${COMMIT_SHA}" >> $GITHUB_ENV
+            echo "Beta version suffix: -beta.${DATE}.${COMMIT_SHA}"
+          fi
+
+      - name: Update package versions for beta
+        run: |
+          PACKAGE_FILTER="${{ github.event.inputs.package }}"
+          
+          if [ -z "$PACKAGE_FILTER" ]; then
+            # Find all package.json files
+            PACKAGE_FILES=$(find packages -name "package.json" -not -path "*/node_modules/*")
+          else
+            # Find specific package.json
+            PACKAGE_FILES=$(find packages/$PACKAGE_FILTER -name "package.json" -not -path "*/node_modules/*")
+          fi
+          
+          for pkg in $PACKAGE_FILES; do
+            # Get current version
+            CURRENT_VERSION=$(node -p "require('./${pkg}').version")
+            # Set new beta version
+            NEW_VERSION="${CURRENT_VERSION}${BETA_VERSION}"
+            echo "Updating ${pkg} from ${CURRENT_VERSION} to ${NEW_VERSION}"
+            # Update version in package.json
+            node -e "const pkg = require('./${pkg}'); pkg.version = '${NEW_VERSION}'; require('fs').writeFileSync('./${pkg}', JSON.stringify(pkg, null, 2) + '\n')"
+          done
+
+      - name: Publish beta to npm
+        run: |
+          PACKAGE_FILTER="${{ github.event.inputs.package }}"
+          
+          if [ -z "$PACKAGE_FILTER" ]; then
+            # Publish all packages
+            pnpm --filter "./packages/*" publish --tag beta --no-git-checks
+          else
+            # Publish specific package
+            pnpm --filter "./packages/$PACKAGE_FILTER" publish --tag beta --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Publish release based on GitHub release
+  publish-release:
+    needs: test
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm run --filter "./packages/*" build
+
+      - name: Extract version from release tag
+        id: extract-version
+        run: |
+          # Remove 'v' prefix if present
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          VERSION="${TAG_NAME#v}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Release version: ${VERSION}"
+
+      - name: Update package.json versions
+        run: |
+          # Determine if it's a specific package release
+          if [[ "$VERSION" == *"@"* ]]; then
+            # Format is package@version
+            PACKAGE_NAME=${VERSION%@*}
+            VERSION=${VERSION#*@}
+            echo "Package-specific release: ${PACKAGE_NAME} at version ${VERSION}"
+          
+            # Update only the specified package
+            pkg_path=$(find packages -name "package.json" -not -path "*/node_modules/*" | xargs grep -l "\"name\": \"${PACKAGE_NAME}\"")
+          
+            if [ -n "$pkg_path" ]; then
+              echo "Updating ${pkg_path} to version ${VERSION}"
+              node -e "const pkg = require('./${pkg_path}'); pkg.version = '${VERSION}'; require('fs').writeFileSync('./${pkg_path}', JSON.stringify(pkg, null, 2) + '\n')"
+            else
+              echo "Warning: Package ${PACKAGE_NAME} not found"
+              exit 1
+            fi
+          else
+            # Update all packages to same version
+            echo "Global version update to ${VERSION}"
+            find packages -name "package.json" -not -path "*/node_modules/*" | while read pkg; do
+              echo "Updating ${pkg} to version ${VERSION}"
+              node -e "const pkg = require('./${pkg}'); pkg.version = '${VERSION}'; require('fs').writeFileSync('./${pkg}', JSON.stringify(pkg, null, 2) + '\n')"
+            done
+          fi
+
+      - name: Publish to npm
+        run: |
+          if [[ "$VERSION" == *"@"* ]]; then
+            # Extract package name
+            PACKAGE_NAME=${VERSION%@*}
+          
+            # Find the package directory
+            PACKAGE_DIR=$(find packages -name "package.json" -not -path "*/node_modules/*" | xargs grep -l "\"name\": \"${PACKAGE_NAME}\"" | xargs dirname)
+          
+            if [ -n "$PACKAGE_DIR" ]; then
+              echo "Publishing package from ${PACKAGE_DIR}"
+              cd ${PACKAGE_DIR} && npm publish --access public
+            else
+              echo "Error: Could not find directory for ${PACKAGE_NAME}"
+              exit 1
+            fi
+          else
+            # Publish all packages
+            pnpm --filter "./packages/*" publish --access public --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

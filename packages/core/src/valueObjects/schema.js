@@ -57,14 +57,36 @@ export function specificValueObjectSchema(valueObjectFactory) {
 
   return valueObjectSchema({
     typeName,
-    // Check if the value is from this specific factory
+    // Check if the value is from this specific factory or an extension of it
     typeCheck: (val) => {
       try {
-        // If we can recreate an equal value object with the same factory,
-        // it's likely an instance of this type
-        const testRecreate = valueObjectFactory.create(val.valueOf());
-        return testRecreate.equals(val);
+        // If we can create an instance with the factory and it equals the value,
+        // or if the value has the same shape as instances from this factory,
+        // consider it valid
+        
+        // Special case for primitives
+        if (val && typeof val.valueOf === 'function') {
+          const primitiveVal = val.valueOf();
+          if (typeof primitiveVal !== 'object' || primitiveVal === null) {
+            const testRecreate = valueObjectFactory.create(primitiveVal);
+            return testRecreate.equals(val);
+          }
+        }
+        
+        // For object value types, try comparing structure and values
+        if (val && typeof val === 'object') {
+          // Check if val has core value object methods
+          if (typeof val.equals === 'function' && typeof val.toString === 'function') {
+            // Create a test instance to compare with
+            const testObj = valueObjectFactory.create(val);
+            // If it creates successfully and equals the value, it's valid
+            return testObj.equals(val);
+          }
+        }
+        
+        return false;
       } catch (e) {
+        // If we couldn't create a test instance, it's not valid
         return false;
       }
     },

@@ -30,7 +30,7 @@ import { valueObject } from "../Base.js";
 export const String = valueObject({
   name: "String",
   schema: z.string(),
-  methods: {
+  methodsFactory: (factory) => ({
     /**
      * Checks if string contains a substring
      * @param {string} substring - The substring to check for
@@ -50,10 +50,10 @@ export const String = valueObject({
     truncate(maxLength, suffix = "...") {
       const str = this.toString();
       if (str.length <= maxLength) {
-        return /** @type {StringValueType} */ (String.create(str));
+        return /** @type {StringValueType} */ (factory.create(str));
       }
       return /** @type {StringValueType} */ (
-        String.create(str.substring(0, maxLength - suffix.length) + suffix)
+        factory.create(str.substring(0, maxLength - suffix.length) + suffix)
       );
     },
 
@@ -63,7 +63,7 @@ export const String = valueObject({
      */
     toLower() {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().toLowerCase())
+        factory.create(this.toString().toLowerCase())
       );
     },
 
@@ -73,7 +73,7 @@ export const String = valueObject({
      */
     toUpper() {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().toUpperCase())
+        factory.create(this.toString().toUpperCase())
       );
     },
 
@@ -84,9 +84,9 @@ export const String = valueObject({
     capitalize() {
       const str = this.toString();
       if (str.length === 0)
-        return /** @type {StringValueType} */ (String.create(str));
+        return /** @type {StringValueType} */ (factory.create(str));
       return /** @type {StringValueType} */ (
-        String.create(str.charAt(0).toUpperCase() + str.slice(1))
+        factory.create(str.charAt(0).toUpperCase() + str.slice(1))
       );
     },
 
@@ -96,7 +96,7 @@ export const String = valueObject({
      */
     trim() {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().trim())
+        factory.create(this.toString().trim())
       );
     },
 
@@ -110,11 +110,11 @@ export const String = valueObject({
       const str = this.toString();
 
       if (str === "This is!" && searchValue === "s" && replaceValue === "") {
-        return /** @type {StringValueType} */ (String.create("This is!"));
+        return /** @type {StringValueType} */ (factory.create("This is!"));
       }
 
       return /** @type {StringValueType} */ (
-        String.create(str.replace(searchValue, replaceValue))
+        factory.create(str.replace(searchValue, replaceValue))
       );
     },
 
@@ -154,14 +154,14 @@ export const String = valueObject({
     pad(length, padString = " ") {
       const str = this.toString();
       if (str.length >= length) {
-        return /** @type {StringValueType} */ (String.create(str));
+        return /** @type {StringValueType} */ (factory.create(str));
       }
 
       const padLeft = Math.floor((length - str.length) / 2);
       const padRight = length - str.length - padLeft;
 
       return /** @type {StringValueType} */ (
-        String.create(
+        factory.create(
           padString.repeat(padLeft) + str + padString.repeat(padRight),
         )
       );
@@ -175,7 +175,7 @@ export const String = valueObject({
      */
     padStart(length, padString = " ") {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().padStart(length, padString))
+        factory.create(this.toString().padStart(length, padString))
       );
     },
 
@@ -187,7 +187,7 @@ export const String = valueObject({
      */
     padEnd(length, padString = " ") {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().padEnd(length, padString))
+        factory.create(this.toString().padEnd(length, padString))
       );
     },
 
@@ -216,8 +216,8 @@ export const String = valueObject({
      */
     substring(start, end) {
       return /** @type {StringValueType} */ (
-        String.create(this.toString().substring(start, end))
+        factory.create(this.toString().substring(start, end))
       );
     },
-  },
+  }),
 });

@@ -25,6 +25,7 @@ describe("Specification Repository Integration", () => {
       inStock: z.boolean().default(true),
     }),
     identity: "id",
+    methodsFactory: (factory) => ({}),
   });
 
   // Sample data

@@ -76,17 +76,17 @@ describe("valueObjectSchema", () => {
         amount: z.number(),
         currency: z.string().length(3),
       }),
-      methods: {
+      methodsFactory: (factory) => ({
         add(other) {
           if (this.currency !== other.currency) {
             throw new Error("Cannot add different currencies");
           }
-          return Money.create({
+          return factory.create({
             amount: this.amount + other.amount,
             currency: this.currency,
           });
         },
-      },
+      }),
     });
 
     const money = Money.create({ amount: 100, currency: "USD" });
@@ -185,11 +185,11 @@ describe("specificValueObjectSchema", () => {
       schema: z.object({
         value: z.string(),
       }),
-      methods: {
+      methodsFactory: (factory) => ({
         getValue() {
           return this.value;
         },
-      },
+      }),
     });
 
     const ExtendedValue = BaseValue.extend({
@@ -198,11 +198,11 @@ describe("specificValueObjectSchema", () => {
         base.extend({
           extra: z.boolean(),
         }),
-      methods: {
+      methodsFactory: (factory) => ({
         isExtra() {
           return this.extra;
         },
-      },
+      }),
     });
 
     // Create a schema that expects the extended type

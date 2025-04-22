@@ -100,7 +100,7 @@ import { domainService } from 'domaindrivenjs';
 // Create a transfer service that moves money between accounts
 const FundsTransferService = domainService({
   name: 'FundsTransferService',
-  methods: {
+  operationsFactory: (serviceFactory) => ({
     async transfer(sourceAccount, destinationAccount, amount, description) {
       // Validate the transfer
       if (amount.amount <= 0) {
@@ -136,14 +136,14 @@ const FundsTransferService = domainService({
         transfer
       };
     }
-  }
+  })
 });
 ```
 
 Let's break down the components:
 
 1. **`name`**: A descriptive name for your domain service
-2. **`methods`**: Functions that implement the service operations
+2. **`operationsFactory`**: A factory function that receives the service factory and returns operations that implement the service functionality
 
 ## Using Domain Services
 

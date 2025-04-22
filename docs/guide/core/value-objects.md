@@ -92,19 +92,19 @@ const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {                        // Methods that provide behavior
+  methodsFactory: (factory) => ({   // Factory function that provides methods
     add(other) {
       if (this.currency !== other.currency) {
         throw new Error('Cannot add different currencies');
       }
-      return Money.create({ 
+      return factory.create({ 
         amount: this.amount + other.amount, 
         currency: this.currency 
       });
     },
     
     multiply(factor) {
-      return Money.create({ 
+      return factory.create({ 
         amount: this.amount * factor, 
         currency: this.currency 
       });
@@ -116,7 +116,7 @@ const Money = valueObject({
         currency: this.currency
       }).format(this.amount);
     }
-  }
+  })
 });
 ```
 
@@ -254,7 +254,7 @@ import { valueObject } from 'domaindrivenjs';
 const Email = valueObject({
   name: 'Email',
   schema: z.string().email().toLowerCase(),
-  methods: {
+  methodsFactory: (factory) => ({
     getDomain() {
       return this.split('@')[1];
     },
@@ -267,7 +267,7 @@ const Email = valueObject({
              !domain.includes('hotmail.com') &&
              !domain.includes('yahoo.com');
     }
-  }
+  })
 });
 
 // Usage
@@ -293,7 +293,7 @@ const DateRange = valueObject({
   }).refine(data => data.start <= data.end, {
     message: 'End date must be after start date'
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     durationInDays() {
       return Math.ceil((this.end - this.start) / (1000 * 60 * 60 * 24));
     },
@@ -310,12 +310,12 @@ const DateRange = valueObject({
       const newEnd = new Date(this.end);
       newEnd.setDate(newEnd.getDate() + days);
       
-      return DateRange.create({
+      return factory.create({
         start: this.start,
         end: newEnd
       });
     }
-  }
+  })
 });
 
 // Usage
@@ -346,7 +346,7 @@ import { NonEmptyString } from 'domaindrivenjs';
 const ProductName = NonEmptyString.extend({
   name: 'ProductName',
   schema: (baseSchema) => baseSchema.max(100),
-  methods: {
+  methodsFactory: (factory) => ({
     toSEOSlug() {
       return this.toString()
         .toLowerCase()
@@ -354,7 +354,7 @@ const ProductName = NonEmptyString.extend({
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
     }
-  }
+  })
 });
 
 // Usage
@@ -386,7 +386,7 @@ import { valueObject, Email, NonEmptyString } from 'domaindrivenjs';
 const PhoneNumber = valueObject({
   name: 'PhoneNumber',
   schema: z.string().regex(/^\+?[1-9]\d{1,14}$/),
-  methods: {
+  methodsFactory: (factory) => ({
     getCountryCode() {
       if (this.startsWith('+')) {
         return this.split(' ')[0];
@@ -402,7 +402,7 @@ const PhoneNumber = valueObject({
       }
       return this.toString();
     }
-  }
+  })
 });
 
 // Now compose them into a more complex value object
@@ -413,18 +413,18 @@ const ContactInfo = valueObject({
     name: NonEmptyString.schema,
     phone: PhoneNumber.schema.optional()
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     hasPhone() {
       return this.phone !== undefined;
     },
     
     withNewEmail(email) {
-      return ContactInfo.create({
+      return factory.create({
         ...this,
         email: Email.create(email)
       });
     }
-  }
+  })
 });
 
 // Usage
@@ -453,7 +453,7 @@ import { valueObject } from 'domaindrivenjs';
 const PasswordStrength = valueObject({
   name: 'PasswordStrength',
   schema: z.enum(['WEAK', 'MEDIUM', 'STRONG']),
-  methods: {
+  methodsFactory: (factory) => ({
     isAcceptable() {
       return this !== 'WEAK';
     },
@@ -461,13 +461,13 @@ const PasswordStrength = valueObject({
     requiresAdditionalFactors() {
       return this === 'MEDIUM';
     }
-  }
+  })
 });
 
 const Password = valueObject({
   name: 'Password',
   schema: z.string().min(8),
-  methods: {
+  methodsFactory: (factory) => ({
     getStrength() {
       let score = 0;
       
@@ -490,7 +490,7 @@ const Password = valueObject({
     isAcceptableForRegistration() {
       return this.getStrength().isAcceptable();
     }
-  }
+  })
 });
 
 // Usage
@@ -539,9 +539,9 @@ const Customer = entity({
     creditBalance: Money.schema
   }),
   identity: 'id',
-  methods: {
+  methodsFactory: (factory) => ({
     updateEmail(newEmail) {
-      return Customer.update(this, { email: newEmail });
+      return factory.update(this, { email: newEmail });
     },
     
     addCredit(amount) {
@@ -549,11 +549,11 @@ const Customer = entity({
         throw new Error('Currency mismatch');
       }
       
-      return Customer.update(this, {
+      return factory.update(this, {
         creditBalance: this.creditBalance.add(amount)
       });
     }
-  }
+  })
 });
 
 // Usage
@@ -583,17 +583,17 @@ import { valueObject } from 'domaindrivenjs';
 const TagList = valueObject({
   name: 'TagList',
   schema: z.array(z.string()).max(10),
-  methods: {
+  methodsFactory: (factory) => ({
     add(tag) {
       // If tag already exists, return same list
       if (this.includes(tag)) return this;
       
       // Otherwise create new list with the tag added
-      return TagList.create([...this, tag]);
+      return factory.create([...this, tag]);
     },
     
     remove(tag) {
-      return TagList.create(this.filter(t => t !== tag));
+      return factory.create(this.filter(t => t !== tag));
     },
     
     asString() {
@@ -604,7 +604,7 @@ const TagList = valueObject({
     [Symbol.iterator]() {
       return this.valueOf()[Symbol.iterator]();
     }
-  }
+  })
 });
 
 // Usage
@@ -635,7 +635,7 @@ const NumberRange = valueObject({
   }).refine(data => data.min <= data.max, {
     message: 'Min must be less than or equal to max'
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     includes(value) {
       return value >= this.min && value <= this.max;
     },
@@ -649,12 +649,12 @@ const NumberRange = valueObject({
     },
     
     expand(amount) {
-      return NumberRange.create({
+      return factory.create({
         min: this.min - amount,
         max: this.max + amount
       });
     }
-  }
+  })
 });
 
 // Usage
@@ -767,7 +767,7 @@ const Color = valueObject({
     blue: z.number().int().min(0).max(255),
     alpha: z.number().min(0).max(1).default(1)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     toHex() {
       const r = this.red.toString(16).padStart(2, '0');
       const g = this.green.toString(16).padStart(2, '0');
@@ -783,7 +783,7 @@ const Color = valueObject({
     toJSON() {
       return this.toHex();
     }
-  }
+  })
 });
 
 // Static factory method for creating from hex
@@ -826,12 +826,12 @@ const Discount = valueObject({
     name: z.string(),
     isActive: z.boolean().default(true)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     apply(amount) {
       if (!this.isActive) return amount;
       return amount * (1 - this.percentage / 100);
     }
-  }
+  })
 });
 
 // Add a "no discount" factory method
@@ -898,15 +898,15 @@ const Color = valueObject({
     green: z.number().int().min(0).max(255),
     blue: z.number().int().min(0).max(255)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     darken() {
-      return Color.create({
+      return factory.create({
         red: Math.max(0, this.red - 20),
         green: Math.max(0, this.green - 20),
         blue: Math.max(0, this.blue - 20)
       });
     }
-  }
+  })
 });
 ```
 
@@ -917,23 +917,23 @@ const Color = valueObject({
 const Email = valueObject({
   name: 'Email',
   schema: z.string(), // No validation!
-  methods: {
+  methodsFactory: (factory) => ({
     getDomain() {
       // Might throw error if not a valid email
       return this.split('@')[1];
     }
-  }
+  })
 });
 
 // BETTER: With validation
 const Email = valueObject({
   name: 'Email',
   schema: z.string().email().toLowerCase(),
-  methods: {
+  methodsFactory: (factory) => ({
     getDomain() {
       return this.split('@')[1];
     }
-  }
+  })
 });
 ```
 
@@ -951,29 +951,29 @@ const User = valueObject({
     lastLogin: z.date(),
     // Many more fields...
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     // Auth methods
     checkPassword() { /*...*/ },
     incrementLoginAttempts() { /*...*/ },
     // Profile methods
     getFullName() { /*...*/ },
     // Many more methods...
-  }
+  })
 });
 
 // BETTER: Split into focused value objects
 const Email = valueObject({
   name: 'Email',
   schema: z.string().email().toLowerCase(),
-  methods: { /*...*/ }
+  methodsFactory: (factory) => ({ /*...*/ })
 });
 
 const Password = valueObject({
   name: 'Password',
   schema: z.string().min(8),
-  methods: { 
+  methodsFactory: (factory) => ({ 
     isMatch(plaintext) { /*...*/ }
-  }
+  })
 });
 
 // And then use an entity for User with identity

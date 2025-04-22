@@ -8,5 +8,5 @@ import { z } from "zod";
 export const IntegerNumber = NumberValue.extend({
   name: "IntegerNumber",
   schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).int(),
-  methods: {},
+  methodsFactory: (factory) => ({}),
 });

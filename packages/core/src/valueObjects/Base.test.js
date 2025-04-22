@@ -13,18 +13,17 @@ describe("valueObject", () => {
         value: z.number().positive(),
         label: z.string().min(1),
       }),
-      methods: {
+      methodsFactory: (factory) => ({
         getValue() {
           return this.value;
         },
         doubled() {
-          const factory = this.constructor;
           return factory.create({
             value: this.value * 2,
             label: this.label,
           });
         },
-      },
+      }),
     });
   };
 
@@ -112,16 +111,20 @@ describe("valueObject", () => {
   it("should implement equals method comparing all properties", () => {
     // Arrange
     const TestValue = createTestValueObject();
+    // Create two separate instances with identical values
     const instance1 = TestValue.create({ value: 5, label: "test" });
     const instance2 = TestValue.create({ value: 5, label: "test" });
+    // Create an instance with different values
     const instance3 = TestValue.create({ value: 10, label: "test" });
 
     // Act & Assert
+    // Two instances with the same values should be considered equal
     expect(instance1.equals(instance2)).toBe(true);
+    // Instances with different values should not be equal
     expect(instance1.equals(instance3)).toBe(false);
+    // Null/undefined checks
     expect(instance1.equals(null)).toBe(false);
     expect(instance1.equals(undefined)).toBe(false);
-
     // Same instance equals itself
     expect(instance1.equals(instance1)).toBe(true);
   });
@@ -150,6 +153,7 @@ describe("valueObject", () => {
           baseSchema.extend({
             extra: z.boolean().default(false),
           }),
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
@@ -182,21 +186,29 @@ describe("valueObject", () => {
       // Act
       const ExtendedValue = TestValue.extend({
         name: "ExtendedValue",
-        methods: {
+        methodsFactory: (factory) => ({
+          getValue() {
+            return this.value;
+          },
+          doubled() {
+            return factory.create({
+              value: this.value * 2,
+              label: this.label,
+            });
+          },
           tripled() {
-            const factory = this.constructor;
             return factory.create({
               value: this.value * 3,
               label: this.label,
             });
           },
-        },
+        }),
       });
 
       // Assert
       const instance = ExtendedValue.create({ value: 5, label: "test" });
 
-      // Original methods should still work
+      // Original methods should still work through extension
       expect(instance.getValue()).toBe(5);
       expect(instance.doubled().value).toBe(10);
 

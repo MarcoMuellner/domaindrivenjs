@@ -114,15 +114,15 @@ export function valueObject({
           const thisProps = Object.getOwnPropertyNames(this);
           const otherProps = Object.getOwnPropertyNames(other);
 
-          if (thisProps.length !== otherProps.length) {
+          // Create arrays of data properties (excluding methods)
+          const thisDataProps = thisProps.filter(prop => typeof this[prop] !== "function");
+          const otherDataProps = otherProps.filter(prop => typeof other[prop] !== "function");
+
+          if (thisDataProps.length !== otherDataProps.length) {
             return false;
           }
 
-          for (const prop of thisProps) {
-            // Skip methods
-            if (typeof this[prop] === "function") {
-              continue;
-            }
+          for (const prop of thisDataProps) {
             // eslint-disable-next-line no-prototype-builtins
             if (!other.hasOwnProperty(prop) || this[prop] !== other[prop]) {
               return false;
@@ -209,11 +209,27 @@ export function valueObject({
         ? schemaTransformer(schema)
         : schema;
 
+    // Create a combined methods factory that includes the parent methods
+    const combinedMethodsFactory = (factory) => {
+      // First get the methods from the original factory
+      const parentFactoryTemp = { create, schema, extend };
+      const parentMethods = methodsFactory(parentFactoryTemp);
+      
+      // Then get the methods from the extended factory
+      const extendedMethods = extendedMethodsFactory(factory);
+      
+      // Combine them, with extended methods taking precedence
+      return {
+        ...parentMethods,
+        ...extendedMethods
+      };
+    };
+
     // Create a new value object factory with combined methods
     return valueObject({
       name: extendedName,
       schema: extendedSchema,
-      methodsFactory: extendedMethodsFactory,
+      methodsFactory: combinedMethodsFactory,
       overrideIsPrimitive,
     });
   }

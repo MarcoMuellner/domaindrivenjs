@@ -8,7 +8,7 @@ import { z } from "zod";
 export const PercentageNumber = NumberValue.extend({
   name: "PercentageNumber",
   schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).min(0).max(1),
-  methods: {
+  methodsFactory: (factory) => ({
     /**
      * Formats this percentage with a specified number of decimal places
      * @param {number} [decimals=0] - Number of decimal places
@@ -16,7 +16,11 @@ export const PercentageNumber = NumberValue.extend({
      * @returns {string} Formatted percentage string
      */
     format(decimals = 0, locale = "en-US") {
-      return this.toPercentage(locale, decimals);
+      return new Intl.NumberFormat(locale, {
+        style: "percent",
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(this);
     },
-  },
+  }),
 });

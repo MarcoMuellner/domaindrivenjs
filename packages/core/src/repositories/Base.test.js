@@ -24,18 +24,18 @@ describe("repository", () => {
       category: z.string().optional(),
     }),
     identity: "id",
-    methods: {
+    methodsFactory: (factory) => ({
       updateName(name) {
-        return TestAggregate.update(this, { name });
+        return factory.update(this, { name });
       },
       emitTestEvent() {
         // Use factory update method to get a fresh aggregate with event capabilities
-        return TestAggregate.update(this, {}).emitEvent("TestEvent", {
+        return factory.update(this, {}).emitEvent("TestEvent", {
           aggregateId: this.id,
           name: this.name,
         });
       },
-    },
+    }),
   });
 
   // Specification example for testing

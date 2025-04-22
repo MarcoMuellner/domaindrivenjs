@@ -8,5 +8,5 @@ import { z } from "zod";
 export const PositiveNumber = NumberValue.extend({
   name: "PositiveNumber",
   schema: (baseSchema) => /** @type {z.ZodNumber} */(baseSchema).positive(),
-  methods: {},
+  methodsFactory: (factory) => ({}),
 });

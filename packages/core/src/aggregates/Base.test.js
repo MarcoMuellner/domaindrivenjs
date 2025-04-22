@@ -21,8 +21,8 @@ describe("aggregate", () => {
       unitPrice: z.number().positive(),
     });
 
-    // Create the aggregate without methods first
-    const orderAggregate = aggregate({
+    // Create the aggregate with the methodsFactory pattern
+    return aggregate({
       name: "Order",
       schema: z.object({
         id: z.string().uuid(),
@@ -52,97 +52,84 @@ describe("aggregate", () => {
           message: "Cannot modify a completed or cancelled order",
         },
       ],
-      methods: {},
-    });
-
-    // Now add methods that reference the orderAggregate (not Order)
-    const methodsToAdd = {
-      addItem(product, quantity) {
-        const existingItemIndex = this.items.findIndex(
-          (item) => item.productId === product.id,
-        );
-
-        let newItems;
-
-        if (existingItemIndex >= 0) {
-          // Update existing item
-          const item = this.items[existingItemIndex];
-          const updatedItem = {
-            ...item,
-            quantity: item.quantity + quantity,
-          };
-
-          newItems = [
-            ...this.items.slice(0, existingItemIndex),
-            updatedItem,
-            ...this.items.slice(existingItemIndex + 1),
-          ];
-        } else {
-          // Add new item
-          const newItem = {
-            productId: product.id,
-            name: product.name,
-            quantity,
-            unitPrice: product.price,
-          };
-
-          newItems = [...this.items, newItem];
-        }
-
-        // Calculate new total
-        const total = newItems.reduce(
-          (sum, item) => sum + item.unitPrice * item.quantity,
-          0,
-        );
-
-        return orderAggregate.update(this, {
-          items: newItems,
-          total,
-        });
-      },
-
-      placeOrder() {
-        return orderAggregate.update(this, {
-          status: "PLACED",
-          placedAt: new Date(),
-        });
-      },
-
-      cancelOrder() {
-        if (this.status === "SHIPPED" || this.status === "COMPLETED") {
-          throw new Error("Cannot cancel shipped or completed orders");
-        }
-
-        return orderAggregate.update(this, {
-          status: "CANCELLED",
-        });
-      },
-
-      markAsPaid() {
-        if (this.status !== "PLACED") {
-          throw new Error("Only placed orders can be marked as paid");
-        }
-
-        return orderAggregate.update(this, {
-          status: "PAID",
-        });
-      },
-    };
-
-    // Recreate the aggregate with methods
-    return aggregate({
-      name: "Order",
-      schema: orderAggregate.schema,
-      identity: orderAggregate.identity,
-      invariants: orderAggregate.invariants,
-      methods: methodsToAdd,
+      methodsFactory: (factory) => ({
+        addItem(product, quantity) {
+          const existingItemIndex = this.items.findIndex(
+            (item) => item.productId === product.id,
+          );
+  
+          let newItems;
+  
+          if (existingItemIndex >= 0) {
+            // Update existing item
+            const item = this.items[existingItemIndex];
+            const updatedItem = {
+              ...item,
+              quantity: item.quantity + quantity,
+            };
+  
+            newItems = [
+              ...this.items.slice(0, existingItemIndex),
+              updatedItem,
+              ...this.items.slice(existingItemIndex + 1),
+            ];
+          } else {
+            // Add new item
+            const newItem = {
+              productId: product.id,
+              name: product.name,
+              quantity,
+              unitPrice: product.price,
+            };
+  
+            newItems = [...this.items, newItem];
+          }
+  
+          // Calculate new total
+          const total = newItems.reduce(
+            (sum, item) => sum + item.unitPrice * item.quantity,
+            0,
+          );
+  
+          return factory.update(this, {
+            items: newItems,
+            total,
+          });
+        },
+  
+        placeOrder() {
+          return factory.update(this, {
+            status: "PLACED",
+            placedAt: new Date(),
+          });
+        },
+  
+        cancelOrder() {
+          if (this.status === "SHIPPED" || this.status === "COMPLETED") {
+            throw new Error("Cannot cancel shipped or completed orders");
+          }
+  
+          return factory.update(this, {
+            status: "CANCELLED",
+          });
+        },
+  
+        markAsPaid() {
+          if (this.status !== "PLACED") {
+            throw new Error("Only placed orders can be marked as paid");
+          }
+  
+          return factory.update(this, {
+            status: "PAID",
+          });
+        },
+      }),
     });
   };
 
   // Helper function to create a test aggregate (Product)
   const createProductAggregate = () => {
-    // Create the aggregate without methods first
-    const productAggregate = aggregate({
+    return aggregate({
       name: "Product",
       schema: z.object({
         id: z.string().uuid(),
@@ -159,39 +146,27 @@ describe("aggregate", () => {
           message: "Cannot sell a product with zero stock",
         },
       ],
-      methods: {},
-    });
-
-    // Now define methods that reference productAggregate
-    const methodsToAdd = {
-      decreaseStock(quantity) {
-        if (quantity > this.stockLevel) {
-          throw new Error("Not enough stock available");
-        }
-
-        return productAggregate.update(this, {
-          stockLevel: this.stockLevel - quantity,
-        });
-      },
-
-      increaseStock(quantity) {
-        return productAggregate.update(this, {
-          stockLevel: this.stockLevel + quantity,
-        });
-      },
-
-      deactivate() {
-        return productAggregate.update(this, { isActive: false });
-      },
-    };
-
-    // Recreate the aggregate with methods
-    return aggregate({
-      name: "Product",
-      schema: productAggregate.schema,
-      identity: productAggregate.identity,
-      invariants: productAggregate.invariants,
-      methods: methodsToAdd,
+      methodsFactory: (factory) => ({
+        decreaseStock(quantity) {
+          if (quantity > this.stockLevel) {
+            throw new Error("Not enough stock available");
+          }
+  
+          return factory.update(this, {
+            stockLevel: this.stockLevel - quantity,
+          });
+        },
+  
+        increaseStock(quantity) {
+          return factory.update(this, {
+            stockLevel: this.stockLevel + quantity,
+          });
+        },
+  
+        deactivate() {
+          return factory.update(this, { isActive: false });
+        },
+      }),
     });
   };
 
@@ -202,6 +177,7 @@ describe("aggregate", () => {
         aggregate({
           schema: z.object({ id: z.string() }),
           identity: "id",
+          methodsFactory: (factory) => ({}),
         }),
       ).toThrow("Aggregate name is required");
     });
@@ -211,6 +187,7 @@ describe("aggregate", () => {
         aggregate({
           name: "TestAggregate",
           identity: "id",
+          methodsFactory: (factory) => ({}),
         }),
       ).toThrow("Aggregate schema is required");
     });
@@ -220,6 +197,7 @@ describe("aggregate", () => {
         aggregate({
           name: "TestAggregate",
           schema: z.object({ id: z.string() }),
+          methodsFactory: (factory) => ({}),
         }),
       ).toThrow("Aggregate identity field is required");
     });
@@ -530,7 +508,7 @@ describe("aggregate", () => {
         identity: "id",
         // No invariants defined here since we'll check using explicit code
         invariants: [],
-        methods: {},
+        methodsFactory: (factory) => ({}),
       });
 
       // Create a simple item
@@ -686,6 +664,7 @@ describe("aggregate", () => {
             renewalPeriod: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
             nextRenewalDate: z.date(),
           }),
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
@@ -724,7 +703,80 @@ describe("aggregate", () => {
             renewalPeriod: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
             nextRenewalDate: z.date(),
           }),
-        methods: {
+        methodsFactory: (factory) => ({
+          // Include methods from the parent order
+          addItem(product, quantity) {
+            const existingItemIndex = this.items.findIndex(
+              (item) => item.productId === product.id,
+            );
+    
+            let newItems;
+    
+            if (existingItemIndex >= 0) {
+              // Update existing item
+              const item = this.items[existingItemIndex];
+              const updatedItem = {
+                ...item,
+                quantity: item.quantity + quantity,
+              };
+    
+              newItems = [
+                ...this.items.slice(0, existingItemIndex),
+                updatedItem,
+                ...this.items.slice(existingItemIndex + 1),
+              ];
+            } else {
+              // Add new item
+              const newItem = {
+                productId: product.id,
+                name: product.name,
+                quantity,
+                unitPrice: product.price,
+              };
+    
+              newItems = [...this.items, newItem];
+            }
+    
+            // Calculate new total
+            const total = newItems.reduce(
+              (sum, item) => sum + item.unitPrice * item.quantity,
+              0,
+            );
+    
+            return factory.update(this, {
+              items: newItems,
+              total,
+            });
+          },
+    
+          placeOrder() {
+            return factory.update(this, {
+              status: "PLACED",
+              placedAt: new Date(),
+            });
+          },
+    
+          cancelOrder() {
+            if (this.status === "SHIPPED" || this.status === "COMPLETED") {
+              throw new Error("Cannot cancel shipped or completed orders");
+            }
+    
+            return factory.update(this, {
+              status: "CANCELLED",
+            });
+          },
+    
+          markAsPaid() {
+            if (this.status !== "PLACED") {
+              throw new Error("Only placed orders can be marked as paid");
+            }
+    
+            return factory.update(this, {
+              status: "PAID",
+            });
+          },
+          
+          // Add new methods for subscription functionality
           renew() {
             const nextDate = new Date(this.nextRenewalDate);
 
@@ -740,17 +792,17 @@ describe("aggregate", () => {
                 break;
             }
 
-            return SubscriptionOrder.update(this, {
+            return factory.update(this, {
               nextRenewalDate: nextDate,
             });
           },
 
           changeRenewalPeriod(period) {
-            return SubscriptionOrder.update(this, {
+            return factory.update(this, {
               renewalPeriod: period,
             });
           },
-        },
+        }),
       });
 
       // Assert
@@ -816,7 +868,7 @@ describe("aggregate", () => {
             message: "Cannot renew an inactive subscription",
           },
         ],
-        methods: {},
+        methodsFactory: (factory) => ({}),
       });
 
       // Create valid subscription with future date
@@ -923,7 +975,7 @@ describe("aggregate", () => {
             message: "Renewal date must be in the future",
           },
         ],
-        methods: {},
+        methodsFactory: (factory) => ({}),
       });
 
       // Create an order with items (to satisfy base invariant)
@@ -1086,6 +1138,7 @@ describe("aggregate", () => {
         }),
         identity: "id",
         historize: true,
+        methodsFactory: (factory) => ({}),
       });
 
       // Act
@@ -1119,6 +1172,7 @@ describe("aggregate", () => {
         }),
         identity: "id",
         historize: true,
+        methodsFactory: (factory) => ({}),
       });
 
       // Act
@@ -1164,6 +1218,7 @@ describe("aggregate", () => {
         }),
         identity: "id",
         historize: true,
+        methodsFactory: (factory) => ({}),
       });
 
       // Act
@@ -1192,6 +1247,7 @@ describe("aggregate", () => {
           name: z.string(),
         }),
         identity: "code",
+        methodsFactory: (factory) => ({}),
       });
 
       // Act
@@ -1202,6 +1258,7 @@ describe("aggregate", () => {
             id: z.string().uuid(),
           }),
         identity: "id", // Change identity field
+        methodsFactory: (factory) => ({}),
       });
 
       // Assert
