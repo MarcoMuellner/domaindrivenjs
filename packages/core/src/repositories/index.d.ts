@@ -1,2 +1,2 @@
-export { repository, RepositoryAdapter, RepositoryError } from "./Base";
+export { repository, RepositoryAdapter } from "./Base";
 export { createInMemoryAdapter } from "./adapters/InMemory";

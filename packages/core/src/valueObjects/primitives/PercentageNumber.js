@@ -16,11 +16,12 @@ export const PercentageNumber = NumberValue.extend({
      * @returns {string} Formatted percentage string
      */
     format(decimals = 0, locale = "en-US") {
+      const value = Number(this.valueOf());
       return new Intl.NumberFormat(locale, {
         style: "percent",
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
-      }).format(this);
+      }).format(value);
     },
   }),
 });

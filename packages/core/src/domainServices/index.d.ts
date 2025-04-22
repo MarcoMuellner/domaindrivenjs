@@ -1,1 +1,1 @@
-export { domainService, DomainServiceError } from "./Base";
+export { domainService } from "./Base";
