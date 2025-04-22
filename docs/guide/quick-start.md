@@ -397,9 +397,9 @@ const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     // Money methods...
-  }
+  })
 });
 
 const Product = entity({
@@ -411,9 +411,9 @@ const Product = entity({
     stockLevel: z.number().int().nonnegative()
   }),
   identity: 'id',
-  methods: {
+  methodsFactory: (factory) => ({
     // Product methods...
-  }
+  })
 });
 
 const Order = aggregate({
@@ -434,9 +434,9 @@ const Order = aggregate({
   invariants: [
     // Order invariants...
   ],
-  methods: {
+  methodsFactory: (factory) => ({
     // Order methods...
-  }
+  })
 });
 
 // Create repositories

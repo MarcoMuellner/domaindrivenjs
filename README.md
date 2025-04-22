@@ -38,17 +38,17 @@ const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     add(other) {
       if (this.currency !== other.currency) {
         throw new Error(`Cannot add ${other.currency} to ${this.currency}`);
       }
-      return Money.create({ 
+      return factory.create({ 
         amount: this.amount + other.amount, 
         currency: this.currency 
       });
     }
-  }
+  })
 });
 
 // Create and use a value object

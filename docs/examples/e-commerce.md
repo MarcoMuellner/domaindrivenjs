@@ -27,12 +27,12 @@ const Money = valueObject({
     amount: z.number().nonnegative(),
     currency: z.string().length(3)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     add(other) {
       if (this.currency !== other.currency) {
         throw new Error(`Cannot add different currencies: ${this.currency} and ${other.currency}`);
       }
-      return Money.create({
+      return factory.create({
         amount: this.amount + other.amount,
         currency: this.currency
       });
@@ -41,13 +41,13 @@ const Money = valueObject({
       if (this.currency !== other.currency) {
         throw new Error(`Cannot subtract different currencies: ${this.currency} and ${other.currency}`);
       }
-      return Money.create({
+      return factory.create({
         amount: Math.max(0, this.amount - other.amount),
         currency: this.currency
       });
     },
     multiply(factor) {
-      return Money.create({
+      return factory.create({
         amount: this.amount * factor,
         currency: this.currency
       });
@@ -71,7 +71,7 @@ const Address = valueObject({
     zipCode: z.string().min(1),
     country: z.string().length(2)
   }),
-  methods: {
+  methodsFactory: (factory) => ({
     format() {
       return `${this.street}, ${this.city}, ${this.state} ${this.zipCode}, ${this.country}`;
     },
@@ -85,7 +85,7 @@ const Address = valueObject({
 const Email = valueObject({
   name: 'Email',
   schema: z.string().email().toLowerCase(),
-  methods: {
+  methodsFactory: (factory) => ({
     getDomain() {
       return this.split('@')[1];
     },
@@ -123,22 +123,22 @@ const ProductVariant = entity({
     stockLevel: z.number().int().nonnegative()
   }),
   identity: 'id',
-  methods: {
+  methodsFactory: (factory) => ({
     decreaseStock(quantity) {
       if (quantity > this.stockLevel) {
         throw new Error(`Insufficient stock: requested ${quantity}, available ${this.stockLevel}`);
       }
-      return ProductVariant.update(this, {
+      return factory.update(this, {
         stockLevel: this.stockLevel - quantity
       });
     },
     increaseStock(quantity) {
-      return ProductVariant.update(this, {
+      return factory.update(this, {
         stockLevel: this.stockLevel + quantity
       });
     },
     updatePrice(newPrice) {
-      return ProductVariant.update(this, { price: newPrice });
+      return factory.update(this, { price: newPrice });
     },
     isInStock() {
       return this.stockLevel > 0;
