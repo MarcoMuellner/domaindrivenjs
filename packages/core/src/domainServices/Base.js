@@ -25,23 +25,20 @@ export class DomainServiceError extends DomainError {
  * @param {object} options - Service configuration
  * @param {string} options.name - Name of the service
  * @param {Record<string, any>} [options.dependencies={}] - Dependencies required by this service
- * @param {Record<string, Function>} options.operations - Operations this service provides
+ * @param {function(Object): Record<string, Function>} options.operationsFactory - Factory function that creates operations
  * @returns {object} A factory for creating domain service instances
  */
-export function domainService({ name, dependencies = {}, operations }) {
+export function domainService({
+                                name,
+                                dependencies = {},
+                                operationsFactory,
+                              }) {
   if (!name) {
     throw new Error("Domain service name is required");
   }
 
-  if (!operations || typeof operations !== "object") {
-    throw new Error("Domain service operations are required");
-  }
-
-  // Validate operations
-  for (const [opName, op] of Object.entries(operations)) {
-    if (typeof op !== "function") {
-      throw new Error(`Operation '${opName}' must be a function`);
-    }
+  if (typeof operationsFactory !== 'function') {
+    throw new Error("Operations factory is required");
   }
 
   /**
@@ -62,9 +59,9 @@ export function domainService({ name, dependencies = {}, operations }) {
 
     if (missingDependencies.length > 0) {
       throw new DomainServiceError(
-        `Missing required dependencies: ${missingDependencies.join(", ")}`,
-        null,
-        { service: name, missingDependencies },
+          `Missing required dependencies: ${missingDependencies.join(", ")}`,
+          null,
+          { service: name, missingDependencies },
       );
     }
 
@@ -73,6 +70,24 @@ export function domainService({ name, dependencies = {}, operations }) {
       serviceName: name,
       dependencies: { ...injectedDependencies },
     };
+
+    // Create a temporary factory for use in operationsFactory
+    const tempFactory = {
+      create,
+      name,
+      dependencies,
+      extend
+    };
+
+    // Generate operations using the factory
+    const operations = operationsFactory(tempFactory);
+
+    // Validate operations
+    for (const [opName, op] of Object.entries(operations)) {
+      if (typeof op !== "function") {
+        throw new Error(`Operation '${opName}' must be a function`);
+      }
+    }
 
     // First, create a complete service object with all operations (unbound)
     const completeService = {
@@ -101,27 +116,30 @@ export function domainService({ name, dependencies = {}, operations }) {
    * @param {object} options - Extension options
    * @param {string} options.name - The name of the extended service
    * @param {Record<string, any>} [options.dependencies={}] - Additional dependencies
-   * @param {Record<string, Function>} [options.operations={}] - Additional operations
+   * @param {function(Object): Record<string, Function>} options.operationsFactory - Factory function for creating operations
    * @returns {object} A new domain service factory
    */
   function extend({
-    name: extendedName,
-    dependencies: extendedDeps = {},
-    operations: extendedOps = {},
-  }) {
+                    name: extendedName,
+                    dependencies: extendedDeps = {},
+                    operationsFactory: extendedOpsFactory,
+                  }) {
     if (!extendedName) {
       throw new Error("Extended domain service name is required");
     }
 
-    // Combine dependencies and operations
+    if (typeof extendedOpsFactory !== 'function') {
+      throw new Error("Operations factory is required for extension");
+    }
+
+    // Combine dependencies
     const combinedDependencies = { ...dependencies, ...extendedDeps };
-    const combinedOperations = { ...operations, ...extendedOps };
 
     // Create new domain service with combined configuration
     return domainService({
       name: extendedName,
       dependencies: combinedDependencies,
-      operations: combinedOperations,
+      operationsFactory: extendedOpsFactory,
     });
   }
 

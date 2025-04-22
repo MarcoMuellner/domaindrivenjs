@@ -16,7 +16,7 @@ import { ValidationError } from "../errors/index.js";
  * @typedef {Object} ValueObjectFactory
  * @property {(data: any) => ValueObject<T>} create - Creates a new instance of the value object
  * @property {z.ZodSchema} schema - The Zod schema used for validation
- * @property {(options: {name: string, schema?: Function, methods?: object}) => ValueObjectFactory<any>} extend - Creates an extended version of this value object
+ * @property {(options: {name: string, schema?: Function, methodsFactory: Function}) => ValueObjectFactory<any>} extend - Creates an extended version of this value object
  */
 
 /**
@@ -31,30 +31,30 @@ import { ValidationError } from "../errors/index.js";
  * @param {object} options - Value object configuration
  * @param {string} options.name - Name of the value object
  * @param {SchemaType} options.schema - Zod schema for validation
- * @param {Record<string, Function>} [options.methods={}] - Methods to attach to the value object
+ * @param {function(ValueObjectFactory): Record<string, Function>} options.methodsFactory - Factory function that creates methods
  * @param {boolean | undefined} [options.overrideIsPrimitive] - Override primitive detection
  * @returns {ValueObjectFactory<z.infer<SchemaType>>} A factory function that creates value objects
  */
 export function valueObject({
-  name,
-  schema,
-  methods = {},
-  overrideIsPrimitive = undefined,
-}) {
+                              name,
+                              schema,
+                              methodsFactory,
+                              overrideIsPrimitive = undefined,
+                            }) {
   if (!name) throw new Error("Value object name is required");
   if (!schema) throw new Error("Value object schema is required");
+  if (typeof methodsFactory !== 'function') throw new Error("Method factory is required");
 
   // Check if this is likely a primitive wrapper
   const isPrimitive =
-    schema.constructor?.name === "ZodString" ||
-    schema.constructor?.name === "ZodNumber" ||
-    schema.constructor?.name === "ZodBoolean" ||
-    overrideIsPrimitive;
+      schema.constructor?.name === "ZodString" ||
+      schema.constructor?.name === "ZodNumber" ||
+      schema.constructor?.name === "ZodBoolean" ||
+      overrideIsPrimitive;
 
   /**
    * Factory function to create value objects
    * @param {any} data - The data to create the value object from
-   * @param {boolean | undefined} [isPrimitive=false] - Whether to treat this as a primitive wrapper
    * @returns {ValueObject<z.infer<typeof schema>>} A new value object instance
    * @throws {ValidationError} If validation fails
    */
@@ -146,10 +146,15 @@ export function valueObject({
         },
       };
 
-      // Add all custom methods to the prototype (unbound)
-      for (const [methodName, methodFn] of Object.entries(methods)) {
-        prototype[methodName] = methodFn;
-      }
+      // Create a temporary factory for use in methodsFactory
+      const tempFactory = {
+        create,
+        schema,
+        extend
+      };
+
+      // Generate methods using the factory
+      const methods = methodsFactory(tempFactory);
 
       // Now bind all methods to the complete prototype
       const boundMethods = {};
@@ -168,9 +173,9 @@ export function valueObject({
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new ValidationError(
-          `Invalid ${name}: ${error.errors.map((e) => e.message).join(", ")}`,
-          error,
-          { objectType: name, input: data },
+            `Invalid ${name}: ${error.errors.map((e) => e.message).join(", ")}`,
+            error,
+            { objectType: name, input: data },
         );
       }
       throw error;
@@ -183,37 +188,35 @@ export function valueObject({
    * @param {object} options - Extension options
    * @param {string} options.name - Name of the extended value object
    * @param {function} [options.schema] - Function to transform the base schema
-   * @param {object} [options.methods] - Additional methods for the extended object
+   * @param {function} options.methodsFactory - Factory function to create methods for the extended object
    * @returns {ValueObjectFactory} A new factory for the extended value object
    */
   function extend({
-    name: extendedName,
-    schema: schemaTransformer,
-    methods: extendedMethods = {},
-  }) {
+                    name: extendedName,
+                    schema: schemaTransformer,
+                    methodsFactory: extendedMethodsFactory,
+                  }) {
     if (!extendedName) {
       throw new Error("Extended value object name is required");
     }
 
+    if (typeof extendedMethodsFactory !== 'function') {
+      throw new Error("Method factory is required for extension");
+    }
+
     // Create the new schema by transforming the original
     const extendedSchema = schemaTransformer
-      ? schemaTransformer(schema)
-      : schema;
+        ? schemaTransformer(schema)
+        : schema;
 
     // Create a new value object factory with combined methods
     return valueObject({
       name: extendedName,
       schema: extendedSchema,
-      // Explicitly combine all parent methods with extended methods
-      methods: {
-        ...methods,
-        ...extendedMethods,
-      },
+      methodsFactory: extendedMethodsFactory,
+      overrideIsPrimitive,
     });
   }
-
-  // Add the schema and extend method to the factory
-  create.schema = schema;
 
   // Return the factory with create, schema, and extend methods
   return {

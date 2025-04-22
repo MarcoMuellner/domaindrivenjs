@@ -27,7 +27,7 @@ import { ValidationError, DomainError } from "../errors/index.js";
  * @property {<NewSchemaType, NewT>(options: {
  *   name: string,
  *   schema?: (schema: SchemaType) => NewSchemaType,
- *   methods?: Record<string, Function>,
+ *   methodsFactory: Function,
  *   identity?: string,
  *   historize?: boolean
  * }) => EntityFactory<NewSchemaType, NewT>} extend - Creates an extended version of this entity
@@ -48,20 +48,21 @@ import { ValidationError, DomainError } from "../errors/index.js";
  * @param {string} options.name - Name of the entity
  * @param {SchemaType} options.schema - Zod schema for validation
  * @param {string} options.identity - Field name that serves as the identity
- * @param {Record<string, Function>} [options.methods={}] - Methods to attach to the entity
+ * @param {function(EntityFactory<SchemaType, T>): Record<string, Function>} options.methodsFactory - Factory function that creates methods
  * @param {boolean} [options.historize=false] - Whether to track state changes
  * @returns {EntityFactory<SchemaType, T>} A factory object to create and manage entities
  */
 export function entity({
-  name,
-  schema,
-  identity,
-  methods = {},
-  historize = false,
-}) {
+                         name,
+                         schema,
+                         identity,
+                         methodsFactory,
+                         historize = false,
+                       }) {
   if (!name) throw new Error("Entity name is required");
   if (!schema) throw new Error("Entity schema is required");
   if (!identity) throw new Error("Entity identity field is required");
+  if (typeof methodsFactory !== 'function') throw new Error("Method factory is required");
 
   /**
    * Create a new entity instance
@@ -112,10 +113,17 @@ export function entity({
         },
       };
 
-      // Add all custom methods to the prototype (unbound)
-      for (const [methodName, methodFn] of Object.entries(methods)) {
-        prototype[methodName] = methodFn;
-      }
+      // Create a temporary factory for use in methodsFactory
+      const tempFactory = {
+        create,
+        update,
+        schema,
+        identity,
+        extend
+      };
+
+      // Generate methods using the factory
+      const methods = methodsFactory(tempFactory);
 
       // Bind all methods to the complete prototype
       const boundMethods = {};
@@ -133,9 +141,9 @@ export function entity({
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new ValidationError(
-          `Invalid ${name}: ${error.errors.map((e) => e.message).join(", ")}`,
-          error,
-          { objectType: name, input: data },
+            `Invalid ${name}: ${error.errors.map((e) => e.message).join(", ")}`,
+            error,
+            { objectType: name, input: data },
         );
       }
       throw error;
@@ -153,13 +161,13 @@ export function entity({
   function update(entity, updates) {
     // Ensure we're not changing the identity
     if (
-      updates[identity] !== undefined &&
-      updates[identity] !== entity[identity]
+        updates[identity] !== undefined &&
+        updates[identity] !== entity[identity]
     ) {
       throw new DomainError(
-        `Cannot change identity of ${name} from "${entity[identity]}" to "${updates[identity]}"`,
-        null,
-        { objectType: name, entity, updates },
+          `Cannot change identity of ${name} from "${entity[identity]}" to "${updates[identity]}"`,
+          null,
+          { objectType: name, entity, updates },
       );
     }
 
@@ -213,20 +221,24 @@ export function entity({
    * @param {object} options - Extension options
    * @param {string} options.name - Name of the extended entity
    * @param {(baseSchema: SchemaType) => NewSchemaType} [options.schema] - Function to transform the base schema
-   * @param {Record<string, Function>} [options.methods] - Additional methods for the extended entity
+   * @param {function(EntityFactory): Record<string, Function>} options.methodsFactory - Factory function for creating methods
    * @param {string} [options.identity] - Optional override for identity field
    * @param {boolean} [options.historize] - Optional override for historization
    * @returns {EntityFactory<NewSchemaType, NewT>} A new factory for the extended entity
    */
   function extend({
-    name: extendedName,
-    schema: schemaTransformer,
-    methods: extendedMethods = {},
-    identity: extendedIdentity,
-    historize: extendedHistorize,
-  }) {
+                    name: extendedName,
+                    schema: schemaTransformer,
+                    methodsFactory: extendedMethodsFactory,
+                    identity: extendedIdentity,
+                    historize: extendedHistorize,
+                  }) {
     if (!extendedName) {
       throw new Error("Extended entity name is required");
+    }
+
+    if (typeof extendedMethodsFactory !== 'function') {
+      throw new Error("Method factory is required for extension");
     }
 
     // Use the extended identity or the original one
@@ -234,27 +246,19 @@ export function entity({
 
     // Create the new schema by transforming the original
     const extendedSchema = schemaTransformer
-      ? schemaTransformer(schema)
-      : schema;
+        ? schemaTransformer(schema)
+        : schema;
 
     // Create a new entity factory with combined methods
     return entity({
       name: extendedName,
       schema: extendedSchema,
       identity: finalIdentity,
-      // Explicitly combine all parent methods with extended methods
-      methods: {
-        ...methods,
-        ...extendedMethods,
-      },
+      methodsFactory: extendedMethodsFactory,
       historize:
-        extendedHistorize !== undefined ? extendedHistorize : historize,
+          extendedHistorize !== undefined ? extendedHistorize : historize,
     });
   }
-
-  // Add metadata to the factory
-  create.schema = schema;
-  create.identity = identity;
 
   // Return the factory with create, update, and extend methods
   return {
@@ -305,7 +309,7 @@ function deepEqual(a, b) {
     if (keysA.length !== keysB.length) return false;
 
     return keysA.every(
-      (key) => keysB.includes(key) && deepEqual(a[key], b[key]),
+        (key) => keysB.includes(key) && deepEqual(a[key], b[key]),
     );
   }
 

@@ -30,7 +30,7 @@ import { updateWithEvents, withEvents } from "./EventSourced.js";
  * @property {<NewSchemaType, NewT>(options: {
  *   name: string,
  *   schema?: (schema: SchemaType) => NewSchemaType,
- *   methods?: Record<string, Function>,
+ *   methodsFactory: Function,
  *   identity?: string,
  *   invariants?: InvariantDefinition[],
  *   historize?: boolean
@@ -52,29 +52,30 @@ import { updateWithEvents, withEvents } from "./EventSourced.js";
  * @param {string} options.name - Name of the aggregate
  * @param {SchemaType} options.schema - Zod schema for validation
  * @param {string} options.identity - Field name that serves as the identity
- * @param {Record<string, Function>} [options.methods={}] - Methods to attach to the aggregate
+ * @param {function(AggregateFactory): Record<string, Function>} options.methodsFactory - Factory function that creates methods
  * @param {InvariantDefinition[]} [options.invariants=[]] - Business rules that must be satisfied
  * @param {boolean} [options.historize=false] - Whether to track state changes
  * @returns {AggregateFactory<SchemaType, T>} A factory object to create and manage aggregates
  */
 export function aggregate({
-  name,
-  schema,
-  identity,
-  methods = {},
-  invariants = [],
-  historize = false,
-}) {
+                            name,
+                            schema,
+                            identity,
+                            methodsFactory,
+                            invariants = [],
+                            historize = false,
+                          }) {
   if (!name) throw new Error("Aggregate name is required");
   if (!schema) throw new Error("Aggregate schema is required");
   if (!identity) throw new Error("Aggregate identity field is required");
+  if (typeof methodsFactory !== 'function') throw new Error("Method factory is required");
 
   // Create an entity factory to handle the basic entity behavior
   const entityFactory = entity({
     name,
     schema,
     identity,
-    methods: {},
+    methodsFactory: () => ({}), // No methods on the entity level
     historize,
   });
 
@@ -87,8 +88,8 @@ export function aggregate({
     for (const invariant of invariants) {
       if (!invariant.check(data)) {
         const message =
-          invariant.message ||
-          `Invariant '${invariant.name}' violated in ${name}`;
+            invariant.message ||
+            `Invariant '${invariant.name}' violated in ${name}`;
 
         throw new InvariantViolationError(message, invariant.name, {
           aggregate: name,
@@ -111,6 +112,19 @@ export function aggregate({
 
     // Validate the invariants
     validateInvariants(entityInstance);
+
+    // Create a temporary factory for use in methodsFactory
+    const tempFactory = {
+      create,
+      update,
+      schema,
+      identity,
+      invariants,
+      extend
+    };
+
+    // Generate methods using the factory
+    const methods = methodsFactory(tempFactory);
 
     // Add all custom methods to the prototype
     const customMethods = {};
@@ -156,8 +170,8 @@ export function aggregate({
 
     // Transfer any domain events
     return aggregate._domainEvents
-      ? updateWithEvents(aggregate, updatedAggregate)
-      : updatedAggregate;
+        ? updateWithEvents(aggregate, updatedAggregate)
+        : updatedAggregate;
   }
 
   /**
@@ -168,22 +182,26 @@ export function aggregate({
    * @param {object} options - Extension options
    * @param {string} options.name - Name of the extended aggregate
    * @param {(baseSchema: SchemaType) => NewSchemaType} [options.schema] - Function to transform the base schema
-   * @param {Record<string, Function>} [options.methods] - Additional methods for the extended aggregate
+   * @param {function(AggregateFactory): Record<string, Function>} options.methodsFactory - Factory function for creating methods
    * @param {string} [options.identity] - Optional override for identity field
    * @param {InvariantDefinition[]} [options.invariants] - Additional invariants
    * @param {boolean} [options.historize] - Optional override for historization
    * @returns {AggregateFactory<NewSchemaType, NewT>} A new factory for the extended aggregate
    */
   function extend({
-    name: extendedName,
-    schema: schemaTransformer,
-    methods: extendedMethods = {},
-    identity: extendedIdentity,
-    invariants: extendedInvariants = [],
-    historize: extendedHistorize,
-  }) {
+                    name: extendedName,
+                    schema: schemaTransformer,
+                    methodsFactory: extendedMethodsFactory,
+                    identity: extendedIdentity,
+                    invariants: extendedInvariants = [],
+                    historize: extendedHistorize,
+                  }) {
     if (!extendedName) {
       throw new Error("Extended aggregate name is required");
+    }
+
+    if (typeof extendedMethodsFactory !== 'function') {
+      throw new Error("Method factory is required for extension");
     }
 
     // Use the extended identity or the original one
@@ -200,20 +218,12 @@ export function aggregate({
       name: extendedName,
       schema: newSchema,
       identity: finalIdentity,
-      methods: {
-        ...methods,
-        ...extendedMethods,
-      },
+      methodsFactory: extendedMethodsFactory,
       invariants: combinedInvariants,
       historize:
-        extendedHistorize !== undefined ? extendedHistorize : historize,
+          extendedHistorize !== undefined ? extendedHistorize : historize,
     });
   }
-
-  // Add metadata to the factory
-  create.schema = schema;
-  create.identity = identity;
-  create.invariants = invariants;
 
   // Return the factory with create, update, and extend methods
   return {
