@@ -8,26 +8,30 @@ describe("domainService", () => {
     it("should throw error if name is missing", () => {
       expect(() =>
         domainService({
-          methodsFactory: (factory) => ({}),
           operationsFactory: () => ({ test: () => {} }),
         }),
       ).toThrow("Domain service name is required");
     });
     
-    it("should throw error if method factory is missing", () => {
-      expect(() =>
-        domainService({
-          name: "TestService",
-          operationsFactory: () => ({}),
+    it("should ignore methodsFactory parameter", () => {
+      // This test is to maintain backward compatibility - we've removed the methodsFactory parameter
+      // so it should just be ignored
+      const service = domainService({
+        name: "TestService",
+        methodsFactory: (factory) => ({}),
+        operationsFactory: (factory) => ({
+          test: function() { return "test"; }
         }),
-      ).toThrow("Method factory is required");
+      });
+      
+      const instance = service.create();
+      expect(instance.test()).toBe("test");
     });
 
     it("should throw error if operations factory is missing", () => {
       expect(() =>
         domainService({
           name: "TestService",
-          methodsFactory: (factory) => ({}),
         }),
       ).toThrow("Operations factory is required");
     });
@@ -36,7 +40,6 @@ describe("domainService", () => {
       expect(() =>
         domainService({
           name: "TestService",
-          methodsFactory: (factory) => ({}),
           operationsFactory: "not an object",
         }),
       ).toThrow("Operations factory is required");
@@ -46,7 +49,6 @@ describe("domainService", () => {
       expect(() => {
         const service = domainService({
           name: "TestService",
-          methodsFactory: (factory) => ({}),
           operationsFactory: (factory) => ({
             validOp: () => {},
             invalidOp: "not a function",
@@ -64,12 +66,11 @@ describe("domainService", () => {
       // Arrange
       const TestService = domainService({
         name: "TestService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           doSomething: function () {
             return "done";
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act
@@ -89,7 +90,7 @@ describe("domainService", () => {
           repo: null,
           logger: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           getRepo: function () {
             return this.dependencies.repo;
           },
@@ -97,7 +98,6 @@ describe("domainService", () => {
             return this.dependencies.logger;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const testRepo = { find: () => {} };
@@ -122,7 +122,6 @@ describe("domainService", () => {
           requiredDep: {}, // Non-null means required
           optionalDep: null, // Null means optional
         },
-        methodsFactory: (factory) => ({}),
         operationsFactory: (factory) => ({
           doSomething: function () {},
         }),
@@ -142,10 +141,9 @@ describe("domainService", () => {
       // Arrange
       const TestService = domainService({
         name: "TestService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           doSomething: function () {},
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act
@@ -177,12 +175,11 @@ describe("domainService", () => {
         dependencies: {
           calculator: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           calculate: function (x, y) {
             return this.dependencies.calculator.calculate(x, y);
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const service = MathService.create({
@@ -204,7 +201,7 @@ describe("domainService", () => {
         dependencies: {
           value: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           getValue: function () {
             return this.dependencies.value;
           },
@@ -213,7 +210,6 @@ describe("domainService", () => {
             return this.getValue() * 2;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const service = TestService.create({ value: 21 });
@@ -230,23 +226,21 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           baseOperation: function () {
             return "base";
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act
       const ExtendedService = BaseService.extend({
         name: "ExtendedService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           extendedOperation: function () {
             return "extended";
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const service = ExtendedService.create();
@@ -264,12 +258,11 @@ describe("domainService", () => {
         dependencies: {
           baseDep: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           getBaseDep: function () {
             return this.dependencies.baseDep;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act
@@ -278,12 +271,11 @@ describe("domainService", () => {
         dependencies: {
           extendedDep: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           getExtendedDep: function () {
             return this.dependencies.extendedDep;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const service = ExtendedService.create({
@@ -300,16 +292,14 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           baseOperation: function () {},
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act & Assert
       expect(() =>
         BaseService.extend({
-          methodsFactory: (factory) => ({}),
           operationsFactory: () => ({
             extendedOperation: function () {},
           }),
@@ -321,23 +311,21 @@ describe("domainService", () => {
       // Arrange
       const BaseService = domainService({
         name: "BaseService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           calculate: function (a, b) {
             return a + b;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act - override the calculate method
       const ExtendedService = BaseService.extend({
         name: "ExtendedService",
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           calculate: function (a, b) {
             return a * b;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       const baseService = BaseService.create();
@@ -379,7 +367,7 @@ describe("domainService", () => {
           accountRepository: null,
           paymentGateway: null,
         },
-        methodsFactory: (factory) => ({
+        operationsFactory: (factory) => ({
           async transferFunds(sourceAccountId, destinationAccountId, amount) {
             const { accountRepository } = this.dependencies;
 
@@ -476,7 +464,6 @@ describe("domainService", () => {
             return paymentResult;
           },
         }),
-        operationsFactory: () => ({}),
       });
 
       // Act

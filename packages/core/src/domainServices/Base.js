@@ -135,11 +135,26 @@ export function domainService({
     // Combine dependencies
     const combinedDependencies = { ...dependencies, ...extendedDeps };
 
+    // Create a combined operations factory that inherits operations from parent
+    const combinedOpsFactory = (factory) => {
+      // Get operations from the original factory
+      const parentOps = operationsFactory(factory);
+      
+      // Get operations from the extended factory
+      const extendedOps = extendedOpsFactory(factory);
+      
+      // Combine them, with extended operations taking precedence
+      return {
+        ...parentOps,
+        ...extendedOps
+      };
+    };
+
     // Create new domain service with combined configuration
     return domainService({
       name: extendedName,
       dependencies: combinedDependencies,
-      operationsFactory: extendedOpsFactory,
+      operationsFactory: combinedOpsFactory,
     });
   }
 
