@@ -61,7 +61,7 @@ console.log(total.format()); // $107.99
 
 ## Documentation
 
-For full documentation, visit our [documentation site](https://github.com/yourusername/domaindrivenjs/docs).
+For full documentation, visit our [documentation site](https://github.com/MarcoMuellner/domaindrivenjs/docs).
 
 - [Getting Started](./docs/guide/getting-started.md)
 - [Core Concepts](./docs/guide/core/index.md)
